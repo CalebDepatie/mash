@@ -3,6 +3,7 @@ project('mash', 'cpp',
 
 srcs = ['src/main.cpp']
 
-add_project_arguments(['-w', '-lstdc++'], language : 'cpp')
+add_project_arguments(['-w'], language : 'cpp')
+add_project_link_arguments(['-lstdc++fs'], language : 'cpp')
 
 executable('mash', [srcs])
