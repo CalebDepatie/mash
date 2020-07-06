@@ -1,0 +1,18 @@
+# Global Defaults
+BasedOnStyle: Google
+ColumnLimit: 100
+IndentWidth: 2
+AlignConsecutiveAssignments: true
+AlignConsecutiveDeclarations: true
+AlignEscapedNewlines: Right
+AlignTrailingComments: true
+AllowShortBlocksOnASingleLine: true
+AllowShortCaseLabelsOnASingleLine: true
+AllowShortFunctionsOnASingleLine: Inline
+BreakBeforeBraces: Attach
+ConstructorInitializerIndentWidth: 2
+ContinuationIndentWidth: 2
+DerivePointerAlignment: false
+IncludeBlocks: Preserve
+IndentWrappedFunctionNames: true
+PointerAlignment: Left
