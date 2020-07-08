@@ -1,31 +1,14 @@
-#include <iostream>
-#include <string>
+
 #include <sstream>
-#include <vector>
-#include <cstring>
-#include <filesystem>
 
 // Linux specific includes
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
-#define VERSION "0.0.1"
-
-// built in shell commands
-auto change_dir(const std::vector<std::string> args) -> int;
-auto quit(const std::vector<std::string> args) -> int;
-
-// todo: aliasing
-const std::string builtin_commands[] = {
-  "Change-Directory",
-  "Quit"
-};
-
-int (*builtin_funcs[]) (const std::vector<std::string>) = {
-  &change_dir,
-  &quit
-};
+// my headers
+#include "builtins.hpp"
+#include "common.hpp"
 
 // function declarations
 auto cmd_loop() -> void;
@@ -33,6 +16,7 @@ auto parse_line(const std::string line) -> int;
 auto tokenize(const std::string str) -> std::vector<std::string>;
 auto launch_args(const std::vector<std::string> line) -> int;
 auto execute_cmds(const std::vector<std::string> line) -> int;
+auto iequals(const std::string& a, const std::string& b) -> bool;
 
 auto main() -> int {
 
@@ -55,9 +39,7 @@ auto cmd_loop() -> void {
   string line;
 
   do {
-    string path = fs::path("/");
-    cout << path << endl;
-    cout << ">> ";
+    cout << fs::current_path().c_str() << ">> ";
     getline(cin, line);
     status = parse_line(line);
   } while (status);
@@ -75,12 +57,13 @@ auto execute_cmds(const std::vector<std::string> line) -> int {
     return 1;
 
   // need to have a better method of this to allow for user defined. hashtable maybe?
-  // todo: make cmd's case insensitive
   for (int i = 0; i < (sizeof(builtin_commands) / sizeof(char*)); i++)
-    if (strcmp(line[0].c_str(), builtin_commands[i].c_str()) == 0)
+    if (iequals(line[0], builtin_commands[i])) // compares the strings in a case insensitive way
       return (*builtin_funcs[i])(line);
 
-  return launch_args(line);
+  //return launch_args(line);
+  ERROR("\"" << line[0] << "\"" << " is not a recognized command")
+  return 1;
 }
 
 auto launch_args(const std::vector<std::string> line) -> int {
@@ -122,17 +105,11 @@ auto tokenize(const std::string str) -> std::vector<std::string> {
   return tokens;
 }
 
-// built in shell commands
-
-auto change_dir(const std::vector<std::string> args) -> int {
-  if (args.size() == 1) {\
-    std::cerr << "mash: expected argument to \"Change-Directory\"" << std::endl;
-  } else {
-
-  }
-  return 1;
-}
-
-auto quit(const std::vector<std::string> args) -> int {
-  return 0;
+// compares strings in a case insensitive method
+auto iequals(const std::string& a, const std::string& b) -> bool {
+  return std::equal(a.begin(), a.end(),
+                    b.begin(), b.end(),
+                    [](char a, char b) {
+                      return tolower(a) == tolower(b);
+                    });
 }
