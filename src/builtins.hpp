@@ -1,5 +1,8 @@
 #pragma #ifndef
 
+#include <unordered_map>
+#include <functional>
+
 #include "common.hpp"
 
 // header file containing the builtin commands
@@ -17,13 +20,10 @@ inline auto quit(const std::vector<std::string> args) -> int {
   return 0;
 }
 
-// todo: aliasing
-const std::string builtin_commands[] = {
-  "Change-Directory",
-  "Quit",
-};
-
-int (*builtin_funcs[]) (const std::vector<std::string>) = {
-  &change_dir,
-  &quit,
+std::unordered_map<std::string, std::function<int(const std::vector<std::string>)>> builtins = {
+  {"Change-Directory", &change_dir},
+  {"cd", &change_dir},
+  {"Quit", &quit},
+  {"Exit", &quit},
+  {"q", &quit},
 };

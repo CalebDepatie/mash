@@ -13,10 +13,8 @@
 // function declarations
 auto cmd_loop() -> void;
 auto parse_line(const std::string line) -> int;
-auto tokenize(const std::string str) -> std::vector<std::string>;
 auto launch_args(const std::vector<std::string> line) -> int;
 auto execute_cmds(const std::vector<std::string> line) -> int;
-auto iequals(const std::string& a, const std::string& b) -> bool;
 
 auto main() -> int {
 
@@ -56,10 +54,10 @@ auto execute_cmds(const std::vector<std::string> line) -> int {
   if (line.size() == 0 || line[0] == "")
     return 1;
 
-  // need to have a better method of this to allow for user defined. hashtable maybe?
-  for (int i = 0; i < (sizeof(builtin_commands) / sizeof(char*)); i++)
-    if (iequals(line[0], builtin_commands[i])) // compares the strings in a case insensitive way
-      return (*builtin_funcs[i])(line);
+  auto v = builtins[line[0]];
+  if (v != NULL) {
+    return v(line);
+  }
 
   //return launch_args(line);
   ERROR("\"" << line[0] << "\"" << " is not a recognized command")
@@ -92,24 +90,4 @@ auto launch_args(const std::vector<std::string> line) -> int {
   }
 
   return 1;
-}
-
-auto tokenize(const std::string str) -> std::vector<std::string> {
-  using namespace std;
-  vector<string> tokens;
-  stringstream str_stream(str);
-  string arg;
-  while(getline(str_stream, arg, ' '))
-    tokens.emplace_back(arg);
-
-  return tokens;
-}
-
-// compares strings in a case insensitive method
-auto iequals(const std::string& a, const std::string& b) -> bool {
-  return std::equal(a.begin(), a.end(),
-                    b.begin(), b.end(),
-                    [](char a, char b) {
-                      return tolower(a) == tolower(b);
-                    });
 }

@@ -1,5 +1,5 @@
 project('mash', 'cpp',
-	default_options : ['cpp_std=c++17'])
+	default_options : ['cpp_std=c++2a'])
 
 pch = 'src/pch.h'
 
