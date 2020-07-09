@@ -26,3 +26,25 @@ auto iequals(const std::string& a, const std::string& b) -> bool {
                       return tolower(a) == tolower(b);
                     });
 }
+
+// case insensitive version stuff for unordered_map
+// TODO: make these better
+struct ihash {
+    size_t operator()(const std::string& Keyval) const {
+        size_t h = 0;
+        std::for_each( Keyval.begin() , Keyval.end() , [&](char c ) {
+            h += tolower(c);
+        });
+        return h;
+    }
+};
+
+struct iequal {
+    bool operator()(const std::string& Left, const std::string& Right) const {
+        return Left.size() == Right.size()
+             && std::equal ( Left.begin() , Left.end() , Right.begin() ,
+            []( char a , char b ) {
+            return tolower(a) == tolower(b);
+        });
+    }
+};
