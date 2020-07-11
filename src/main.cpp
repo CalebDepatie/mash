@@ -12,8 +12,8 @@
 // function declarations
 auto cmd_loop() -> void;
 auto parse_line(const std::string line) -> int;
-auto launch_args(const std::vector<std::string> line) -> int;
-auto execute_cmds(const std::vector<std::string> line) -> int;
+auto launch_args(const std::queue<std::string> line) -> int;
+auto execute_cmds(const std::queue<std::string> line) -> int;
 
 auto main() -> int {
 
@@ -48,30 +48,34 @@ auto parse_line(const std::string line) -> int {
   return execute_cmds(tokens);
 }
 
-auto execute_cmds(const std::vector<std::string> line) -> int {
+auto execute_cmds(std::queue<std::string> line) -> int {
 
-  if (line.size() == 0 || line[0] == "")
+  // check if input is valid
+  if (line.size() == 0)
+    return 1;
+  std::string front_arg = pop_front(line);
+  if (front_arg == "")
     return 1;
 
-  auto v = builtins[line[0]];
+  auto v = builtins[front_arg];
   if (v != NULL) {
     return v(line);
   }
 
   //return launch_args(line);
-  ERROR("\"" << line[0] << "\"" << " is not a recognized command")
+  ERROR("\"" << front_arg << "\"" << " is not a recognized command")
   return 1;
 }
 
-auto launch_args(const std::vector<std::string> line) -> int {
+/* will have to redo this later
+auto launch_args(const std::queue<std::string> line) -> int {
   pid_t pid;
   int status;
 
-  std::vector<const char*> args;
+  std::queue<const char*> args;
   for (const auto& token : line)
-    args.push_back(token.data());
-  args.push_back(NULL); // string terminating character
-  args.shrink_to_fit();
+    args.emplace(token.data());
+  args.emplace(NULL); // string terminating character
 
   pid = fork();
   if (pid == 0) {
@@ -89,4 +93,4 @@ auto launch_args(const std::vector<std::string> line) -> int {
   }
 
   return 1;
-}
+} */
