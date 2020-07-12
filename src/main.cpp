@@ -6,14 +6,14 @@
 #include <unistd.h>
 
 // my headers
-#include "builtins.hpp"
-#include "common.hpp"
+#include "builtins.h"
+#include "lexer.h"
 
 // function declarations
 auto cmd_loop() -> void;
-auto parse_line(const std::string line) -> int;
+inline auto parse_line(const std::string line) -> int;
 auto launch_args(const std::queue<std::string> line) -> int;
-auto execute_cmds(const std::queue<std::string> line) -> int;
+auto execute_cmds(const std::queue<token::Token> tokens) -> int;
 
 auto main() -> int {
 
@@ -43,27 +43,29 @@ auto cmd_loop() -> void {
 }
 
 auto parse_line(const std::string line) -> int {
-  auto tokens = tokenize(line);
+  auto args = args_splitter(line);
+  auto tokens = lexer::lex(args);
 
   return execute_cmds(tokens);
 }
 
-auto execute_cmds(std::queue<std::string> line) -> int {
+auto execute_cmds(std::queue<token::Token> tokens) -> int {
 
   // check if input is valid
-  if (line.size() == 0)
+  if (tokens.size() == 0)
     return 1;
-  std::string front_arg = pop_front(line);
-  if (front_arg == "")
-    return 1;
+  token::Token front_arg = pop_front(tokens);
 
-  auto v = builtins[front_arg];
-  if (v != NULL) {
-    return v(line);
+  switch (front_arg.type) {
+    using namespace token;
+    case token_type::Reserved:
+      auto v = builtins[front_arg.value];
+      return v(tokens);
+      break;
   }
 
   //return launch_args(line);
-  ERROR("\"" << front_arg << "\"" << " is not a recognized command")
+  ERROR("\"" << front_arg.value << "\"" << " is not a recognized command")
   return 1;
 }
 
