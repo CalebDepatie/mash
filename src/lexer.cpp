@@ -13,7 +13,14 @@ auto lexer::lex(std::vector<std::string> args) -> std::vector<token::Token> {
 
     if (builtins.count(val)) {tokens.emplace_back(Token(token_type::Reserved, val)); continue;}
     if (check_if_op(val)) {tokens.emplace_back(Token(token_type::Operator, val)); continue;}
-    if (val == "<-" || val == "=") {tokens.emplace_back(Token(token_type::Assignment, val)); continue;}
+    if (val == "<-" || val == "=") {
+      // correct prior token mistakenly being a 'value'
+      tokens[tokens.size()-1].type = token_type::Identifier;
+      identifiers[tokens[tokens.size()-1].value] = 0;
+      tokens.emplace_back(Token(token_type::Assignment, val));
+      continue;
+    }
+    if (identifiers.count(val)) {tokens.emplace_back(Token(token_type::Identifier, val)); continue;}
     if (val == "\n" || val == "\r\n") {tokens.emplace_back(Token(token_type::End, val)); continue;}
 
     // default case

@@ -8,13 +8,14 @@
 // my headers
 #include "builtins.h"
 #include "lexer.h"
+#include "parser.h"
 #include "tokens.hpp"
 
 // function declarations
 auto cmd_loop() -> void;
 inline auto parse_line(const std::string line) -> int;
 auto launch_args(const std::vector<std::string> line) -> int;
-auto execute_cmds(const std::vector<token::Token> tokens) -> int;
+auto execute_cmds(parser::ASTNode* top) -> int;
 
 auto main() -> int {
 
@@ -46,22 +47,18 @@ auto cmd_loop() -> void {
 auto parse_line(const std::string line) -> int {
   auto args = args_splitter(line);
   auto tokens = lexer::lex(args);
+  auto* ast = parser::parse(tokens);
 
-  return execute_cmds(tokens);
+  return execute_cmds(ast);
 }
 
-auto execute_cmds(std::vector<token::Token> tokens) -> int {
+auto execute_cmds(parser::ASTNode* top) -> int {
 
-  // check if input is valid
-  if (tokens.size() == 0)
-    return 1;
-  token::Token front_arg = pop_front(tokens);
+  DEBUG(top->toString())
 
-  DEBUG(front_arg.value)
+  //clean up memory, should call all the deconstructors and delete all heap allocated mem
+  delete top;
 
-  //return launch_args(line);
-  if (tokens.size())
-    return execute_cmds(tokens);
   return 1;
 }
 
