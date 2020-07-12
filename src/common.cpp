@@ -1,12 +1,12 @@
 #include "common.h"
 
-auto args_splitter(const std::string str) -> std::queue<std::string> {
+auto args_splitter(const std::string str) -> std::vector<std::string> {
   using namespace std;
-  queue<string> tokens;
+  vector<string> tokens;
   stringstream str_stream(str);
   string arg;
   while(getline(str_stream, arg, ' '))
-    tokens.emplace(arg);
+    tokens.emplace_back(arg);
 
   return tokens;
 }

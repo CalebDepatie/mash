@@ -1,7 +1,7 @@
 #include "builtins.h"
-#include "lexer.h"
+#include "tokens.hpp"
 
-auto change_dir(std::queue<token::Token> args) -> int {
+auto change_dir(std::vector<token::Token>& args) -> int {
   if (args.size() == 0) {
     ERROR("expected argument to \"Change-Directory\"")
   } else {
@@ -14,11 +14,11 @@ auto change_dir(std::queue<token::Token> args) -> int {
   return 1;
 }
 
-auto quit(std::queue<token::Token> args) -> int {
+auto quit(std::vector<token::Token>& args) -> int {
   return 0;
 }
 
-auto list_files(std::queue<token::Token> args) -> int {
+auto list_files(std::vector<token::Token>& args) -> int {
   namespace fs = std::filesystem;
 
   for (auto& f : fs::directory_iterator(".")) {

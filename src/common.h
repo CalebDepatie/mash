@@ -11,12 +11,12 @@
 template<class Q>
 inline auto pop_front(Q& q) -> typename Q::value_type {
   auto front = q.front();
-  q.pop();
+  q.erase(q.begin());
   return front;
 }
 
 // creates individual args from a string
-auto args_splitter(const std::string str) -> std::queue<std::string>;
+auto args_splitter(const std::string str) -> std::vector<std::string>;
 
 // compares strings in a case insensitive method
 auto iequals(const std::string& a, const std::string& b) -> bool;

@@ -8,12 +8,13 @@
 // my headers
 #include "builtins.h"
 #include "lexer.h"
+#include "tokens.hpp"
 
 // function declarations
 auto cmd_loop() -> void;
 inline auto parse_line(const std::string line) -> int;
-auto launch_args(const std::queue<std::string> line) -> int;
-auto execute_cmds(const std::queue<token::Token> tokens) -> int;
+auto launch_args(const std::vector<std::string> line) -> int;
+auto execute_cmds(const std::vector<token::Token> tokens) -> int;
 
 auto main() -> int {
 
@@ -49,23 +50,18 @@ auto parse_line(const std::string line) -> int {
   return execute_cmds(tokens);
 }
 
-auto execute_cmds(std::queue<token::Token> tokens) -> int {
+auto execute_cmds(std::vector<token::Token> tokens) -> int {
 
   // check if input is valid
   if (tokens.size() == 0)
     return 1;
   token::Token front_arg = pop_front(tokens);
 
-  switch (front_arg.type) {
-    using namespace token;
-    case token_type::Reserved:
-      auto v = builtins[front_arg.value];
-      return v(tokens);
-      break;
-  }
+  DEBUG(front_arg.value)
 
   //return launch_args(line);
-  ERROR("\"" << front_arg.value << "\"" << " is not a recognized command")
+  if (tokens.size())
+    return execute_cmds(tokens);
   return 1;
 }
 

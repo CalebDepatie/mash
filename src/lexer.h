@@ -1,22 +1,10 @@
 #pragma once
 
 namespace token {
-  enum class token_type {
-    Reserved,
-    Identifier,
-    Operator,
-    End,
-  };
-
-  struct Token {
-    token_type type;
-    std::string value;
-
-    explicit Token(token_type type, std::string value)
-      : type(type), value(value) {};
-  };
+  class Token;
 }
 
 namespace lexer {
-  auto lex(std::queue<std::string> args) -> std::queue<token::Token>;
+  auto lex(std::vector<std::string> args) -> std::vector<token::Token>;
+  inline auto check_if_op(std::string arg) -> bool;
 }
