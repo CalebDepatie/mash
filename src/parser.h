@@ -25,5 +25,5 @@ namespace parser {
     ~ASTOp();
   };
 
-  auto parse(std::vector<token::Token> tokens) -> ASTNode*;
+  auto parse(std::vector<token::Token>& tokens) -> ASTNode*;
 }

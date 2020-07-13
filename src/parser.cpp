@@ -5,7 +5,10 @@
 namespace parser {
   // generates a parse tree / AST from the tokens
   // recursive function ??
-  auto parse(std::vector<token::Token> tokens) -> ASTNode* {
+  auto parse(std::vector<token::Token>& tokens) -> ASTNode* {
+    
+
+    /*
     ASTNode* ast = new ASTNode;
     ASTNode* bottom = ast;
     do {
@@ -35,7 +38,7 @@ namespace parser {
       bottom->child = temp;
       bottom = temp;
     } while (tokens.size() != 0);
-    return ast;
+    return ast; */
   }
 
   // constructors

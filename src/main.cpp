@@ -45,11 +45,15 @@ auto cmd_loop() -> void {
 }
 
 auto parse_line(const std::string line) -> int {
-  auto args = args_splitter(line);
-  auto tokens = lexer::lex(args);
-  auto* ast = parser::parse(tokens);
+  //auto args = args_splitter(line);
+  auto tokens = lexer::lex(line);
+  //auto* ast = parser::parse(tokens);
 
-  return execute_cmds(ast);
+  for (auto t : tokens) {
+    DEBUG(t.toString())
+  }
+
+  return 1;//execute_cmds(ast);
 }
 
 auto execute_cmds(parser::ASTNode* top) -> int {
