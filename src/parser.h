@@ -26,4 +26,5 @@ namespace parser {
   };
 
   auto parse(std::vector<token::Token>& tokens) -> ASTNode*;
+  auto check_op(token::Token tkn) -> bool;
 }

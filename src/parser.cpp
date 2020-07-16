@@ -6,25 +6,19 @@ namespace parser {
   // generates a parse tree / AST from the tokens
   // recursive function ??
   auto parse(std::vector<token::Token>& tokens) -> ASTNode* {
-    
-
-    /*
-    ASTNode* ast = new ASTNode;
+    ASTNode* ast    = new ASTNode;
     ASTNode* bottom = ast;
-    do {
-      auto val = pop_front(tokens);
-      // top
-      if (ast->token.value == "") {
-        ast->token = val;
-        continue;
-      }
+    int      pc     = 0; // program / parse counter
 
-      // setup operator case
-      if (val.type == token::token_type::Value && tokens.size() >= 2) {
-        if (tokens[0].type == token::token_type::Operator) {
-          auto* left   = new ASTNode(val);
-          auto op      = pop_front(tokens);
-          val          = pop_front(tokens);
+    ast->token = tokens[pc++];
+
+    do {
+      // operator case
+      if (tokens[pc].type == token::tkn_type::Num && tokens.size() >= 2) {
+        if (check_op(tokens[pc+1])) {
+          auto* left   = new ASTNode(tokens[pc++]);
+          auto op      = tokens[pc++];
+          auto val     = tokens[pc++];
           auto* right  = new ASTNode(val);
           auto* parent = new ASTOp(op, left, right);
 
@@ -33,12 +27,26 @@ namespace parser {
           continue;
         }
       }
-      //default case
-      auto* temp = new ASTNode(val);
+
+      // default case
+      auto* temp    = new ASTNode(tokens[pc++]);
       bottom->child = temp;
       bottom = temp;
-    } while (tokens.size() != 0);
-    return ast; */
+
+    } while (pc != tokens.size());
+
+    return ast;
+  }
+
+  // helper function checking if the token is an operation
+  auto check_op(token::Token tkn) -> bool {
+    using namespace token;
+    return tkn.type == tkn_type::Op_add
+        || tkn.type == tkn_type::Op_sub
+        || tkn.type == tkn_type::Op_mult
+        || tkn.type == tkn_type::Op_div
+        || tkn.type == tkn_type::Op_mod
+        || tkn.type == tkn_type::Op_pow;
   }
 
   // constructors

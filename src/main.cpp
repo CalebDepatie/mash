@@ -31,6 +31,7 @@ auto main() -> int {
 
 // function definitions
 // Basic shell loop goes read, parse, execute
+// this is also functionally similar to a REPL
 auto cmd_loop() -> void {
   using namespace std;
   namespace fs = filesystem;
@@ -47,13 +48,9 @@ auto cmd_loop() -> void {
 auto parse_line(const std::string line) -> int {
   //auto args = args_splitter(line);
   auto tokens = lexer::lex(line);
-  //auto* ast = parser::parse(tokens);
+  auto* ast = parser::parse(tokens);
 
-  for (auto t : tokens) {
-    DEBUG(t.toString())
-  }
-
-  return 1;//execute_cmds(ast);
+  return execute_cmds(ast);
 }
 
 auto execute_cmds(parser::ASTNode* top) -> int {

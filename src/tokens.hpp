@@ -4,7 +4,7 @@
 
 namespace token {
   enum class tkn_type {
-    ToRemove,
+    ToRemove, // not a real token, used for cleaning up the lexing
     Assignment,
     Iden,
     Num,
