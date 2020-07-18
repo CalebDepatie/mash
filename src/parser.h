@@ -9,8 +9,9 @@ namespace parser {
     token::Token token;
     ASTNode*     child;
 
+    virtual auto execute() -> int;
     virtual auto toString(int depth=0, bool newline=true) -> std::string;
-    inline ASTNode() {};
+    inline ASTNode();
     ASTNode(token::Token token);
     ASTNode(token::Token token, ASTNode* child);
     ~ASTNode();
@@ -20,6 +21,7 @@ namespace parser {
     // treats child as left var
     ASTNode* right;
 
+    auto execute() -> int;
     auto toString(int depth, bool newline) -> std::string;
     ASTOp(token::Token token, ASTNode* left, ASTNode* right);
     ~ASTOp();

@@ -7,6 +7,9 @@ auto lexer::lex(std::string args) -> std::vector<token::Token> {
 
   std::vector<Token> tokens;
 
+  if (args == "")
+    return tokens;
+
   int pc = 0; // index of head
   int ipc = 0; // index of head initial pos
   while (pc < args.size()) {
@@ -23,7 +26,7 @@ auto lexer::lex(std::string args) -> std::vector<token::Token> {
     }
 
     pc++;
-  };
+  }
   tokens.emplace_back(lexlet(args.substr(ipc+1, args.size())));
 
   tokens.erase(std::remove_if(tokens.begin(), tokens.end(), [](Token tkn) {

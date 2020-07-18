@@ -10,7 +10,12 @@ namespace parser {
     ASTNode* bottom = ast;
     int      pc     = 0; // program / parse counter
 
+    if (tokens.size() == 0)
+      return ast;
+
     ast->token = tokens[pc++];
+    if (pc >= tokens.size())
+      return ast;
 
     do {
       // operator case
@@ -23,7 +28,7 @@ namespace parser {
           auto* parent = new ASTOp(op, left, right);
 
           bottom->child = parent;
-          bottom = parent;
+          bottom        = parent;
           continue;
         }
       }
@@ -31,11 +36,23 @@ namespace parser {
       // default case
       auto* temp    = new ASTNode(tokens[pc++]);
       bottom->child = temp;
-      bottom = temp;
+      bottom        = temp;
 
     } while (pc != tokens.size());
 
     return ast;
+  }
+
+  // evaluation
+  auto parser::ASTNode::execute() -> int {
+    if (child != nullptr)
+      return child->execute();
+
+    return 1;
+  }
+
+  auto parser::ASTOp::execute() -> int {
+    return 1;
   }
 
   // helper function checking if the token is an operation
@@ -50,6 +67,8 @@ namespace parser {
   }
 
   // constructors
+  ASTNode::ASTNode()
+    : child(nullptr) {}
   ASTNode::ASTNode(token::Token token)
     : token(token), child(nullptr) {}
   ASTNode::ASTNode(token::Token token, ASTNode* child)
@@ -59,7 +78,8 @@ namespace parser {
 
   // destructors
   ASTNode::~ASTNode() {
-    delete this->child;
+    if (child != nullptr)
+      delete this->child;
   }
   ASTOp::~ASTOp() {
     delete this->right;
