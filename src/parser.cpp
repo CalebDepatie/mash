@@ -43,18 +43,6 @@ namespace parser {
     return ast;
   }
 
-  // evaluation
-  auto parser::ASTNode::execute() -> int {
-    if (child != nullptr)
-      return child->execute();
-
-    return 1;
-  }
-
-  auto parser::ASTOp::execute() -> int {
-    return 1;
-  }
-
   // helper function checking if the token is an operation
   auto check_op(token::Token tkn) -> bool {
     using namespace token;

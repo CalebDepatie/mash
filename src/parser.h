@@ -21,7 +21,6 @@ namespace parser {
     // treats child as left var
     ASTNode* right;
 
-    auto execute() -> int;
     auto toString(int depth, bool newline) -> std::string;
     ASTOp(token::Token token, ASTNode* left, ASTNode* right);
     ~ASTOp();

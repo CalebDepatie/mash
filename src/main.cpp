@@ -9,6 +9,7 @@
 #include "builtins.h"
 #include "lexer.h"
 #include "parser.h"
+#include "evaluation.h"
 #include "tokens.hpp"
 
 // function declarations
