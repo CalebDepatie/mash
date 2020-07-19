@@ -9,7 +9,6 @@ namespace parser {
     token::Token token;
     ASTNode*     child;
 
-    virtual auto execute() -> int;
     virtual auto toString(int depth=0, bool newline=true) -> std::string;
     inline ASTNode();
     ASTNode(token::Token token);

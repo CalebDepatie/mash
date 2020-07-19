@@ -58,12 +58,10 @@ auto execute_cmds(parser::ASTNode* top) -> int {
 
   DEBUG(top->toString())
 
-  int statusCode = top->execute();
-
   //clean up memory, should call all the deconstructors and delete all heap allocated mem
   delete top;
 
-  return statusCode;
+  return 1;
 }
 
 /* will have to redo this later
