@@ -13,7 +13,7 @@ namespace parser {
     inline ASTNode();
     ASTNode(token::Token token);
     ASTNode(token::Token token, ASTNode* child);
-    ~ASTNode();
+    virtual ~ASTNode();
   };
   class ASTOp : public ASTNode {
   public:

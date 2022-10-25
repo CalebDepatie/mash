@@ -6,10 +6,10 @@
 #include <unistd.h>
 
 // my headers
-#include "builtins.h"
-#include "lexer.h"
-#include "parser.h"
-#include "evaluation.h"
+#include "builtins.hpp"
+#include "lexer.hpp"
+#include "parser.hpp"
+#include "evaluation.hpp"
 #include "tokens.hpp"
 
 // function declarations

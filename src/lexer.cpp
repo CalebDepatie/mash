@@ -1,6 +1,7 @@
-#include "lexer.h"
+#include "lexer.hpp"
+#include <unordered_map>
 #include "tokens.hpp"
-#include "builtins.h"
+#include "builtins.hpp"
 
 auto lexer::lex(std::string args) -> std::vector<token::Token> {
   using namespace token;

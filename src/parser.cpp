@@ -1,6 +1,7 @@
-#include "parser.h"
+#include <unordered_map>
+#include "parser.hpp"
 
-#define INDENT_SIZE 2
+constexpr int INDENT_SIZE = 2;
 
 namespace parser {
   // generates a parse tree / AST from the tokens
@@ -8,7 +9,7 @@ namespace parser {
   auto parse(std::vector<token::Token>& tokens) -> ASTNode* {
     ASTNode* ast    = new ASTNode;
     ASTNode* bottom = ast;
-    int      pc     = 0; // program / parse counter
+    std::vector<token::Token>::size_type pc = 0; // program / parse counter
 
     if (tokens.size() == 0)
       return ast;
@@ -85,7 +86,8 @@ namespace parser {
   }
 
   auto ASTOp::toString(int depth, bool newline) -> std::string {
-    return "\n" + std::string((depth+=2)*INDENT_SIZE, ' ') + this->token.toString()
+    depth+=2;
+    return "\n" + std::string(depth*INDENT_SIZE, ' ') + this->token.toString()
           + "\n" + this->child->toString(depth-2, false) + this->right->toString(depth+2, false);
   }
 }

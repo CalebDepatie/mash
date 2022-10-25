@@ -1,4 +1,4 @@
-#include "common.h"
+#include "common.hpp"
 
 auto args_splitter(const std::string str) -> std::vector<std::string> {
   using namespace std;
