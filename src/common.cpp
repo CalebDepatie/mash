@@ -1,5 +1,18 @@
 #include "common.hpp"
 
+#include <string>
+#include <iostream>
+
+void print_error(std::string_view s) {
+  std::cout << RED << "Error: " << s << CLEAR << std::endl;
+}
+
+void print_debug(std::string_view s) {
+  if constexpr(DEBUG) {
+    std::cout << YELLOW << "Debug: " << s << CLEAR << std::endl;
+  }
+}
+
 auto args_splitter(const std::string str) -> std::vector<std::string> {
   using namespace std;
   vector<string> tokens;

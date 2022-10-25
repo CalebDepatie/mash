@@ -11,6 +11,7 @@
 #include "parser.hpp"
 #include "evaluation.hpp"
 #include "tokens.hpp"
+#include "common.hpp"
 
 // function declarations
 auto cmd_loop() -> void;
@@ -20,9 +21,11 @@ auto execute_cmds(parser::ASTNode* top) -> int;
 
 auto main() -> int {
 
-  std::cout << "\033[35mMash Version: " << VERSION << std::endl;
-  std::cout << "WARNING: This is an early version, everything is subject to change" << std::endl;
-  std::cout << "\033[0m" << std::endl; // reset colours
+  if constexpr(DEBUG) {
+    std::cout << PURPLE << "Mash Version: " << VERSION << std::endl;
+    std::cout << "WARNING: This is an early version, everything is subject to change" << std::endl;
+    std::cout << CLEAR << std::endl; // reset colours
+  }
 
   //cmd interp loop
   cmd_loop();
@@ -40,7 +43,7 @@ auto cmd_loop() -> void {
   string line;
 
   do {
-    cout << fs::current_path().c_str() << ">> ";
+    cout << fs::current_path().c_str() << LINE_SYMBOL;
     getline(cin, line);
     status = parse_line(line);
   } while (status);
@@ -56,7 +59,7 @@ auto parse_line(const std::string line) -> int {
 
 auto execute_cmds(parser::ASTNode* top) -> int {
 
-  DEBUG(top->toString())
+  print_debug(top->toString());
 
   //clean up memory, should call all the deconstructors and delete all heap allocated mem
   delete top;

@@ -11,24 +11,28 @@ auto lexer::lex(std::string args) -> std::vector<token::Token> {
   if (args == "")
     return tokens;
 
-  int pc = 0; // index of head
-  int ipc = 0; // index of head initial pos
+  std::vector<Token>::size_type pc = 0; // index of head
+  std::vector<Token>::size_type ipc = 0; // index of head initial pos
   while (pc < args.size()) {
     if (args[pc-1] == '<' && args[pc] == '-') {
+
       if (args[pc-2] != ' ')
         tokens.emplace_back(lexlet(args.substr(ipc, pc-ipc-1)));
+
       tokens.emplace_back(lexlet(args.substr(pc-1, 2)));
       ipc = pc+1;
     } else if (check(args[pc])) {
       tokens.emplace_back(lexlet(args.substr(ipc, pc-ipc)));
+
       if ((args[pc] != ' ' && pc-ipc != 1) || (args[pc-1] != ' '))
         tokens.emplace_back(lexlet(args.substr(pc, 1)));
+
       ipc = pc;
     }
 
     pc++;
   }
-  tokens.emplace_back(lexlet(args.substr(ipc+1, args.size())));
+  tokens.emplace_back(lexlet(args.substr(ipc, args.size())));
 
   tokens.erase(std::remove_if(tokens.begin(), tokens.end(), [](Token tkn) {
     return tkn.type == tkn_type::ToRemove;

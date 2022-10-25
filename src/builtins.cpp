@@ -3,12 +3,12 @@
 
 auto change_dir(std::vector<token::Token>& args) -> int {
   if (args.size() == 0) {
-    ERROR("expected argument to \"Change-Directory\"")
+    print_error("expected argument to \"Change-Directory\"");
   } else {
     try {
       std::filesystem::current_path(std::filesystem::path(pop_front(args).value));
     } catch (...) {
-      ERROR("could not change directory")
+      print_error("could not change directory");
     }
   }
   return 1;
@@ -23,14 +23,14 @@ auto list_files(std::vector<token::Token>& args) -> int {
 
   for (auto& f : fs::directory_iterator(".")) {
     if (f.is_directory()) {
-      std::cout << "\033[34m";
+      std::cout << BLUE;
     } else {
-      std::cout << "\033[32m";
+      std::cout << GREEN;
     }
     std::cout << f.path().filename().c_str() << " ";
   }
 
-  std::cout << "\033[0m" << std::endl;
+  std::cout << CLEAR << std::endl;
 
   return 1;
 }

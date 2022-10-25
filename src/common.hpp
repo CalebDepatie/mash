@@ -2,10 +2,20 @@
 
 // contains common code & macros
 
-constexpr char* VERSION = (char*)"0.0.2";
+constexpr bool DEBUG       = true;
+constexpr auto VERSION     = "0.0.3";
+constexpr auto LINE_SYMBOL = "\n~> ";
 
-#define ERROR(e) std::cout << "\033[1;31mError: " << e << "\033[0m" << std::endl;
-#define DEBUG(s) std::cout << "\033[1;33mDebug: " << s << "\033[0m" << std::endl;
+// terminal helpers
+constexpr auto YELLOW = "\033[1;33m";
+constexpr auto RED    = "\033[1;31m";
+constexpr auto PURPLE = "\033[35m";
+constexpr auto BLUE   = "\033[34m";
+constexpr auto GREEN  = "\033[32m";
+constexpr auto CLEAR  = "\033[0m";
+
+void print_error(std::string_view s);
+void print_debug(std::string_view s);
 
 // returns value from queue
 template<class Q>

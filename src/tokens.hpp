@@ -45,7 +45,11 @@ namespace token {
     Token(tkn_type type, std::string value)
       : type(type), value(value) {};
 
-    inline auto toString() -> std::string {
+    friend inline auto operator==(const Token& lhs, const tkn_type& rhs) -> bool {
+      return lhs.type == rhs;
+    }
+
+    inline auto toString() const -> std::string {
       return "[ " + tkn_names[this->type] + ": " + this->value + " ]"; // no elegant way to convert enum to string
     }
   };
