@@ -37,9 +37,15 @@ auto main(int argc, char* argv[]) -> int {
     std::ifstream script(argv[1]);
     std::string line;
 
+    if (!script.is_open()) {
+      print_error("Could not open file " + std::string(argv[1]) + ", does it exist?");
+    }
+
     while (std::getline(script, line)) {
       int status = parse_line(line);
     }
+
+    script.close();
 
   } else {
     print_error("Expected 1 file or none");
