@@ -4,43 +4,6 @@
 constexpr int INDENT_SIZE = 2;
 
 namespace parser {
-  // generates a parse tree / AST from the tokens
-  // recursive function ??
-  auto parse(std::vector<token::Token>& tokens) -> ASTNode* {
-    ASTNode* ast    = new ASTNode;
-    ASTNode* bottom = ast;
-    std::vector<token::Token>::size_type pc = 0; // program / parse counter
-
-    ast->token = tokens[pc++];
-    if (pc >= tokens.size())
-      return ast;
-
-    do {
-      // operator case
-      if (tokens[pc].type == token::tkn_type::Num && tokens.size() >= 2) {
-        if (check_op(tokens[pc+1])) {
-          auto* left   = new ASTNode(tokens[pc++]);
-          auto op      = tokens[pc++];
-          auto val     = tokens[pc++];
-          auto* right  = new ASTNode(val);
-          auto* parent = new ASTOp(op, left, right);
-
-          bottom->child = parent;
-          bottom        = parent;
-          continue;
-        }
-      }
-
-      // default case
-      auto* temp    = new ASTNode(tokens[pc++]);
-      bottom->child = temp;
-      bottom        = temp;
-
-    } while (pc != tokens.size());
-
-    return ast;
-  }
-
   // helper function checking if the token is an operation
   auto check_op(token::Token tkn) -> bool {
     using namespace token;
@@ -52,33 +15,66 @@ namespace parser {
         || tkn.type == tkn_type::Op_pow;
   }
 
+  // generates a parse tree / AST from the tokens
+  // recursive function ??
+  auto parse(std::vector<token::Token>& tokens) -> std::shared_ptr<ASTNode> {
+    std::shared_ptr<ASTNode> ast(new ASTNode());
+    std::shared_ptr<ASTNode> bottom = ast;
+    std::vector<token::Token>::size_type pc = 0; // program / parse counter
+
+    ast->token = tokens[pc++];
+
+    do {
+      // operator case
+      if (tokens[pc].type == token::tkn_type::Num && tokens.size() >= 2) {
+        if (check_op(tokens[pc+1])) {
+          // im not entirely sure whats happening here yet
+          std::shared_ptr<ASTNode> left(new ASTNode(tokens[pc++]));
+          auto op = tokens[pc++];
+          auto val = tokens[pc++];
+
+          std::shared_ptr<ASTNode> right(new ASTNode(val));
+          std::shared_ptr<ASTNode> parent(new ASTOp(op, left, right));
+
+          bottom->child = parent;
+          bottom        = parent;
+          continue;
+        }
+      }
+
+      // default case
+      std::shared_ptr<ASTNode> temp(new ASTNode(tokens[pc++]));
+      bottom->child = temp;
+      bottom        = temp;
+
+    } while (pc != tokens.size());
+
+    return ast;
+  }
+
   // constructors
   ASTNode::ASTNode()
     : child(nullptr) {}
+
   ASTNode::ASTNode(token::Token token)
     : token(token), child(nullptr) {}
-  ASTNode::ASTNode(token::Token token, ASTNode* child)
-    : token(token), child(child) {}
-  ASTOp::ASTOp(token::Token token, ASTNode* left, ASTNode* right)
-    : ASTNode(token, left), right(right) {}
 
-  // destructors
-  ASTNode::~ASTNode() {
-    if (child != nullptr)
-      delete this->child;
-  }
-  ASTOp::~ASTOp() {
-    delete this->right;
-  }
+  ASTNode::ASTNode(token::Token token, std::shared_ptr<ASTNode> child)
+    : token(token), child(child) {}
+
+  ASTOp::ASTOp(token::Token token, std::shared_ptr<ASTNode> left, std::shared_ptr<ASTNode> right)
+    : ASTNode(token, left), right(right) {}
 
   // to strings
   auto ASTNode::toString(int depth, bool newline) -> std::string {
     std::string indent = "";
     if (newline)
       indent += "\n";
+
     indent += std::string(depth*INDENT_SIZE, ' ');
     if (this->child != nullptr)
       return indent + this->token.toString() + this->child->toString(++depth, true);
+
     return indent + this->token.toString();
   }
 

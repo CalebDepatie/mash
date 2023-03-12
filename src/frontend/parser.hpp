@@ -2,32 +2,29 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 
 #include "tokens.hpp"
 
 namespace parser {
-  // using naked pointers for AST :flushed:
   class ASTNode {
   public:
     token::Token token;
-    ASTNode*     child;
+    std::shared_ptr<ASTNode> child;
 
     virtual auto toString(int depth=0, bool newline=true) -> std::string;
     inline ASTNode();
     ASTNode(token::Token token);
-    ASTNode(token::Token token, ASTNode* child);
-    virtual ~ASTNode();
+    ASTNode(token::Token token, std::shared_ptr<ASTNode> child);
   };
   class ASTOp : public ASTNode {
   public:
     // treats child as left var
-    ASTNode* right;
+    std::shared_ptr<ASTNode> right;
 
     auto toString(int depth, bool newline) -> std::string;
-    ASTOp(token::Token token, ASTNode* left, ASTNode* right);
-    ~ASTOp();
+    ASTOp(token::Token token, std::shared_ptr<ASTNode> left, std::shared_ptr<ASTNode> right);
   };
 
-  auto parse(std::vector<token::Token>& tokens) -> ASTNode*;
-  auto check_op(token::Token tkn) -> bool;
+  auto parse(std::vector<token::Token>& tokens) -> std::shared_ptr<ASTNode>;
 }

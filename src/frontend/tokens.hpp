@@ -18,6 +18,8 @@ namespace token {
     Op_div,
     Op_mod,
     Op_pow,
+    Scope_start,
+    Scope_end,
     End,
   };
 
@@ -33,6 +35,8 @@ namespace token {
     TOKEN_STRING(tkn_type::Op_div),
     TOKEN_STRING(tkn_type::Op_mod),
     TOKEN_STRING(tkn_type::Op_pow),
+    TOKEN_STRING(tkn_type::Scope_start),
+    TOKEN_STRING(tkn_type::Scope_end),
     TOKEN_STRING(tkn_type::End),
   };
 

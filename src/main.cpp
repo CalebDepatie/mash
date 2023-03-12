@@ -17,7 +17,7 @@
 auto cmd_loop() -> void;
 inline auto parse_line(const std::string line) -> int;
 auto launch_args(const std::vector<std::string> line) -> int;
-auto execute_cmds(parser::ASTNode* top) -> int;
+auto execute_cmds(std::shared_ptr<parser::ASTNode> top) -> int;
 
 auto main(int argc, char* argv[]) -> int {
 
@@ -51,9 +51,6 @@ auto main(int argc, char* argv[]) -> int {
     print_error("Expected 1 file or none");
   }
 
-
-  
-
   return 0;
 }
 
@@ -81,19 +78,16 @@ auto parse_line(const std::string line) -> int {
   if (tokens.size() == 0)
     return 0;
 
-  auto* ast = parser::parse(tokens);
+  auto ast = parser::parse(tokens);
 
   return execute_cmds(ast);
 }
 
-auto execute_cmds(parser::ASTNode* top) -> int {
+auto execute_cmds(std::shared_ptr<parser::ASTNode> top) -> int {
 
   if constexpr(DEBUG) {
     print_debug(top->toString());
   }
-
-  //clean up memory, should call all the deconstructors and delete all heap allocated mem
-  delete top;
 
   return 1;
 }

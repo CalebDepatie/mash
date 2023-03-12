@@ -1,22 +1,15 @@
-# basic bath operations
+# basic math operations
 
 val <- 5
-run echo val
 
 val <- 5 + 5
-run echo val
 
 val <- 5 - 5
-run echo val
 
-val <- 5*5
-run echo val
+val <- 5 * 5
 
-val <- val / 5
-run echo val
+val <- 25 / 5
 
 val <- 3 ^ 3
-run echo val
 
 val <- 50 % 10
-run echo val

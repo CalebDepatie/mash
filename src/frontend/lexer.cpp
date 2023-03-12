@@ -92,7 +92,10 @@ auto lexer::lex(std::string args) -> std::vector<token::Token> {
 
     if (check_if_string(word)) {
       tokens.emplace_back(Token(tkn_type::String, word));
-      string_flag = true;
+
+      if (word[word.size()-1] != '\"')
+        string_flag = true;
+      
       continue;
     }
 
@@ -103,6 +106,16 @@ auto lexer::lex(std::string args) -> std::vector<token::Token> {
 
     if (word == "<-") {
       tokens.emplace_back(Token(tkn_type::Assignment, word));
+      continue;
+    }
+
+    if (word == "{") {
+      tokens.emplace_back(Token(tkn_type::Scope_start, word));
+      continue;
+    }
+
+    if (word == "}") {
+      tokens.emplace_back(Token(tkn_type::Scope_end, word));
       continue;
     }
 

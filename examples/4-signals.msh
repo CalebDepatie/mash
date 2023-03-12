@@ -18,3 +18,15 @@ accept time seconds 5
 
 # This will run on the following monday
 accept time day Monday
+
+# To make scheduling work even simpler, an accept can be used within a loop
+# This creates an infinite loop (unless you manually exit) that will run a sequence of commands every signal
+for val <- accept test {
+
+}
+
+# Remember, accept can be used for dates
+# ... Making this run every Monday
+for val <- accept time day Monday {
+    
+}
