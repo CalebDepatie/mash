@@ -1,3 +1,4 @@
+#!/usr/bin/mash
 # Basic control flow constructs from other langs
 
 val <- 5

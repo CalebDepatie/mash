@@ -1,3 +1,4 @@
+#!/usr/bin/mash
 # basic math operations
 
 val <- 5

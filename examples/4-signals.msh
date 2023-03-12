@@ -1,3 +1,4 @@
+#!/usr/bin/mash
 # Signals AKA notifications are a concept within the shell to control tasking
 # Notifications can be done on a variety of things
 
@@ -28,5 +29,5 @@ for val <- accept test {
 # Remember, accept can be used for dates
 # ... Making this run every Monday
 for val <- accept time day Monday {
-    
+
 }

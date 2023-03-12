@@ -1,3 +1,4 @@
+#!/usr/bin/mash
 # simplest example
 
 hello <- "Hello World!"
