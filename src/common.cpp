@@ -1,7 +1,8 @@
 #include "common.hpp"
 
-#include <string>
 #include <iostream>
+#include <sstream>
+#include <algorithm>
 
 void print_error(std::string_view s) {
   std::cout << RED << "Error: " << s << CLEAR << std::endl;

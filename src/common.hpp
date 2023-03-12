@@ -1,14 +1,21 @@
 #pragma once
 
+#include <string_view>
+#include <string>
+#include <vector>
+
 // contains common code & macros
 
 constexpr bool DEBUG       = true;
-constexpr auto VERSION     = "0.0.3";
+constexpr auto VERSION     = "0.0.4";
 constexpr auto LINE_SYMBOL = "\n~> ";
 
 // terminal helpers
 constexpr auto YELLOW = "\033[1;33m";
 constexpr auto RED    = "\033[1;31m";
+constexpr auto BLACK  = "\033[30m";
+constexpr auto GREY   = "\033[37m";
+constexpr auto ORANGE = "\033[33m";
 constexpr auto PURPLE = "\033[35m";
 constexpr auto BLUE   = "\033[34m";
 constexpr auto GREEN  = "\033[32m";

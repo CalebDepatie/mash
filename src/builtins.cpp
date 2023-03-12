@@ -1,5 +1,9 @@
+#include <filesystem>
+#include <iostream>
+
 #include "builtins.hpp"
-#include "tokens.hpp"
+#include "frontend/tokens.hpp"
+#include "common.hpp"
 
 auto change_dir(std::vector<token::Token>& args) -> int {
   if (args.size() == 0) {

@@ -1,16 +1,16 @@
 #include <sstream>
+#include <iostream>
+#include <filesystem>
+#include <fstream>
 
-// Linux specific includes
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
-// my headers
 #include "builtins.hpp"
-#include "lexer.hpp"
-#include "parser.hpp"
-#include "evaluation.hpp"
-#include "tokens.hpp"
+#include "frontend/lexer.hpp"
+#include "frontend/parser.hpp"
+#include "frontend/tokens.hpp"
 #include "common.hpp"
 
 // function declarations
@@ -19,7 +19,7 @@ inline auto parse_line(const std::string line) -> int;
 auto launch_args(const std::vector<std::string> line) -> int;
 auto execute_cmds(parser::ASTNode* top) -> int;
 
-auto main() -> int {
+auto main(int argc, char* argv[]) -> int {
 
   if constexpr(DEBUG) {
     std::cout << PURPLE << "Mash Version: " << VERSION << std::endl;
@@ -27,8 +27,26 @@ auto main() -> int {
     std::cout << CLEAR << std::endl; // reset colours
   }
 
-  //cmd interp loop
-  cmd_loop();
+  // determine if reading file or repl
+  if (argc == 1) {
+    //cmd interp loop
+    cmd_loop();
+  
+  } else if (argc == 2) {
+    // run file
+    std::ifstream script(argv[1]);
+    std::string line;
+
+    while (std::getline(script, line)) {
+      int status = parse_line(line);
+    }
+
+  } else {
+    print_error("Expected 1 file or none");
+  }
+
+
+  
 
   return 0;
 }
@@ -52,6 +70,11 @@ auto cmd_loop() -> void {
 auto parse_line(const std::string line) -> int {
   //auto args = args_splitter(line);
   auto tokens = lexer::lex(line);
+
+  // middle end will handle this, empty vecs were being converted to AST :(
+  if (tokens.size() == 0)
+    return 0;
+
   auto* ast = parser::parse(tokens);
 
   return execute_cmds(ast);
@@ -59,7 +82,9 @@ auto parse_line(const std::string line) -> int {
 
 auto execute_cmds(parser::ASTNode* top) -> int {
 
-  print_debug(top->toString());
+  if constexpr(DEBUG) {
+    print_debug(top->toString());
+  }
 
   //clean up memory, should call all the deconstructors and delete all heap allocated mem
   delete top;

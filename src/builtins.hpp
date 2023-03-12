@@ -2,6 +2,9 @@
 
 #include <unordered_map>
 #include <functional>
+#include <string>
+
+#include "common.hpp"
 
 // header file containing the builtin commands
 namespace token {

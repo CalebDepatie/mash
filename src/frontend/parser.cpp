@@ -11,9 +11,6 @@ namespace parser {
     ASTNode* bottom = ast;
     std::vector<token::Token>::size_type pc = 0; // program / parse counter
 
-    if (tokens.size() == 0)
-      return ast;
-
     ast->token = tokens[pc++];
     if (pc >= tokens.size())
       return ast;

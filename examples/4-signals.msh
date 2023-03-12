@@ -1,0 +1,20 @@
+# Signals AKA notifications are a concept within the shell to control tasking
+# Notifications can be done on a variety of things
+
+# The accept keyword will wait for a notification, and can return a value (but doesnt have to)
+val <- accept test
+run echo val
+
+# notify <signal_name> value
+notify test "Hello notifications!"
+
+# Some notification ends are given by the shell
+# desktop will send a desktop notification to the user, good for alerts
+notify desktop "Whose a good boy?"
+
+# Accept can also be used on some of these shell channels
+# This is essentially a 5 second sleep
+accept time seconds 5
+
+# This will run on the following monday
+accept time day Monday

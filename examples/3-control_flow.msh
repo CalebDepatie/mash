@@ -1,0 +1,11 @@
+# tbd
+
+val <- 5
+
+if val < 3 {
+    run echo "Correct"
+}
+
+for i <- 1 .. 3 {
+    echo "Looping: " + i
+}

@@ -1,10 +1,13 @@
 #pragma once
 
+#include <unordered_map>
+#include <string>
+
 #define TOKEN_STRING(tkn) {tkn, #tkn}
 
 namespace token {
   enum class tkn_type {
-    ToRemove, // not a real token, used for cleaning up the lexing
+    Err, // this should never be placed in, indicates lex error
     Assignment,
     Iden,
     Num,
@@ -19,7 +22,7 @@ namespace token {
   };
 
   inline std::unordered_map<tkn_type, std::string> tkn_names = {
-    TOKEN_STRING(tkn_type::ToRemove),
+    TOKEN_STRING(tkn_type::Err),
     TOKEN_STRING(tkn_type::Assignment),
     TOKEN_STRING(tkn_type::Iden),
     TOKEN_STRING(tkn_type::Num),

@@ -1,0 +1,5 @@
+# simplest example
+
+hello <- "Hello World!"
+
+run echo hello
