@@ -1,49 +1,46 @@
-#include <sstream>
-#include <iostream>
 #include <filesystem>
 #include <fstream>
+#include <iostream>
+#include <sstream>
 
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
-#include "builtins.hpp"
+#include "common.hpp"
 #include "frontend/lexer.hpp"
 #include "frontend/parser.hpp"
 #include "frontend/tokens.hpp"
-#include "common.hpp"
+#include "middleend.hpp"
 
 // function declarations
-auto cmd_loop() -> void;
+auto        cmd_loop() -> void;
 inline auto parse_line(const std::string line) -> int;
-auto launch_args(const std::vector<std::string> line) -> int;
-auto execute_cmds(std::shared_ptr<parser::ASTNode> top) -> int;
+auto        launch_args(const std::vector<std::string> line) -> int;
+auto        execute_cmds(std::shared_ptr<parser::ASTNode> top) -> int;
 
 auto main(int argc, char* argv[]) -> int {
-
-  if constexpr(DEBUG) {
+  if constexpr (DEBUG) {
     std::cout << PURPLE << "Mash Version: " << VERSION << std::endl;
     std::cout << "WARNING: This is an early version, everything is subject to change" << std::endl;
-    std::cout << CLEAR << std::endl; // reset colours
+    std::cout << CLEAR << std::endl;  // reset colours
   }
 
   // determine if reading file or repl
   if (argc == 1) {
-    //cmd interp loop
+    // cmd interp loop
     cmd_loop();
-  
+
   } else if (argc == 2) {
     // run file
     std::ifstream script(argv[1]);
-    std::string line;
+    std::string   line;
 
     if (!script.is_open()) {
       print_error("Could not open file " + std::string(argv[1]) + ", does it exist?");
     }
 
-    while (std::getline(script, line)) {
-      int status = parse_line(line);
-    }
+    while (std::getline(script, line)) { int status = parse_line(line); }
 
     script.close();
 
@@ -60,7 +57,7 @@ auto main(int argc, char* argv[]) -> int {
 auto cmd_loop() -> void {
   using namespace std;
   namespace fs = filesystem;
-  int status;
+  int    status;
   string line;
 
   do {
@@ -71,12 +68,11 @@ auto cmd_loop() -> void {
 }
 
 auto parse_line(const std::string line) -> int {
-  //auto args = args_splitter(line);
+  // auto args = args_splitter(line);
   auto tokens = lexer::lex(line);
 
   // middle end will handle this, empty vecs were being converted to AST :(
-  if (tokens.size() == 0)
-    return 0;
+  if (tokens.size() == 0) return 0;
 
   auto ast = parser::parse(tokens);
 
@@ -84,10 +80,7 @@ auto parse_line(const std::string line) -> int {
 }
 
 auto execute_cmds(std::shared_ptr<parser::ASTNode> top) -> int {
-
-  if constexpr(DEBUG) {
-    print_debug(top->toString());
-  }
+  if constexpr (DEBUG) { print_debug(top->toString()); }
 
   return 1;
 }
