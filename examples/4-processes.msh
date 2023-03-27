@@ -1,17 +1,16 @@
 #!/usr/bin/mash
 # Shells typically have some level of process control, 
-# however mash exposes it in a simplistic way that is also very familiar
-# to how many programming languages model multi-threading
+# however mash exposes it in a simplistic way
 
-# The fork command will run the block, function, or single instruction in a new process
+# The fork command will run the block, function, or single instruction in a new task
 
 fork {
   // processing
 }
 fork run ./2-maths.mash
 
-# The fork command returns an identifier refering to the PID of the child process
-# This will mainly be used if you want to join the process back after forking
+# The fork command returns an identifier refering to the child task
+# This will mainly be used if you want to join the task back after forking
 
 pid <- fork {
   // processing
