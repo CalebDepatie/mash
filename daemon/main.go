@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	gc "go-common"
-	"log"
+	gc "github.com/CalebDepatie/go-common"
+  "net"
 	"os"
 )
 
@@ -31,7 +31,7 @@ func main() {
 			continue
 		}
 
-		go handleExecution(conn)
+		go handleConnection(conn)
 	}
 }
 
