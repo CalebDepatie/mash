@@ -7,7 +7,7 @@
 // contains common code & macros
 
 constexpr bool DEBUG       = true;
-constexpr auto VERSION     = "0.0.4";
+constexpr auto VERSION     = "0.0.5";
 constexpr auto LINE_SYMBOL = "\n~> ";
 
 // terminal helpers

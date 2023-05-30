@@ -1,0 +1,22 @@
+Describing the syntax using ABNF to keep track of the overall language, and ensure consistency and that it's context free.
+
+assignment = indentifier SP "<-" SP (value / func-def) eol
+func-call = identifier *(SP (value / scope)) eol
+func-def = "fn" SP "(" *identifier ")" SP scope
+exec-line = assignment / func-call / scope/ if-cond / loop
+scope = "{" eol 1*(HTAB exec-line eol) "}" eol
+if-cond = "if" SP comparator SP scope
+loop = "for" SP assignment SP scope
+dist-signal = "use" SP identifier SP identifier eol
+
+value = (identifier / math / string / number / conditional / func-call)
+string = DQUOTE *value-character DQUOTE
+math = number SP operation SP number
+conditional = value SP comparator SP value
+
+comparator = "<" / "<=" / "==" / ">" / ">=" / "&&" / "||"
+operation = "+" / "-" / "/" / "*" / "^" / "%"
+value-character = (ALPHA / DIGIT)
+number = 1*DIGIT
+indentifier = 1*ALPHA
+eol = CRLF / LF

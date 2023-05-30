@@ -17,7 +17,7 @@
 auto        cmd_loop() -> void;
 inline auto parse_line(const std::string line) -> int;
 auto        launch_args(const std::vector<std::string> line) -> int;
-auto        execute_cmds(std::shared_ptr<parser::ASTNode> top) -> int;
+auto        execute_cmds(std::vector<Execution_Key> exec_list) -> int;
 
 auto main(int argc, char* argv[]) -> int {
   if constexpr (DEBUG) {
@@ -40,9 +40,16 @@ auto main(int argc, char* argv[]) -> int {
       print_error("Could not open file " + std::string(argv[1]) + ", does it exist?");
     }
 
-    while (std::getline(script, line)) { int status = parse_line(line); }
+    // parse whole file to AST
+    while (std::getline(script, line)) {
+      int status = parse_line(line);
+    }
 
     script.close();
+
+    // Bake whole file
+
+    // Send to daemon
 
   } else {
     print_error("Expected 1 file or none");
@@ -76,11 +83,23 @@ auto parse_line(const std::string line) -> int {
 
   auto ast = parser::parse(tokens);
 
-  return execute_cmds(ast);
+  if constexpr (DEBUG) { print_debug(ast->toString()); }
+
+  auto exec_list = bakeAST(ast);
+
+  return execute_cmds(exec_list);
 }
 
-auto execute_cmds(std::shared_ptr<parser::ASTNode> top) -> int {
-  if constexpr (DEBUG) { print_debug(top->toString()); }
+auto execute_cmds(std::vector<Execution_Key> exec_list) -> int {
+  // if constexpr (DEBUG) {
+  //   std::cout << std::endl;
+  //   for (auto& exec_key : exec_list) {
+  //     print_debug(exec_key.toString());
+  //   }
+  //   std::cout << std::endl;
+  // }
+
+  // this will send to the daemon
 
   return 1;
 }
