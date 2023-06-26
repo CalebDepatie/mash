@@ -48,4 +48,4 @@ struct Execution_Key {
   auto toString() -> std::string;
 };
 
-auto bakeAST(std::shared_ptr<parser::ASTNode> execTop) -> std::vector<Execution_Key>;
+auto bakeAST(std::shared_ptr<parser::Node> execTop) -> std::vector<Execution_Key>;

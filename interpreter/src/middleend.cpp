@@ -6,7 +6,7 @@ auto Execution_Key::toString() -> std::string {
   return op_names[this->op] + ": " + this->value;
 }
 
-auto bakeAST(std::shared_ptr<parser::ASTNode> execTop) -> std::vector<Execution_Key> {
+auto bakeAST(std::shared_ptr<parser::Node> execTop) -> std::vector<Execution_Key> {
   auto exec_vec = std::vector<Execution_Key>();
 
   // set up
@@ -16,12 +16,12 @@ auto bakeAST(std::shared_ptr<parser::ASTNode> execTop) -> std::vector<Execution_
   });
 
   // fill up execution list from the tree
-  std::shared_ptr<parser::ASTNode> cur_node = execTop;
+  std::shared_ptr<parser::Node> cur_node = execTop;
   for (;;) {
     if (!cur_node)
       break;
 
-    cur_node = cur_node->child;
+    cur_node = cur_node->next;
   }
 
   // instruct to end task

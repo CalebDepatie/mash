@@ -3,28 +3,102 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <variant>
 
 #include "tokens.hpp"
 
 namespace parser {
-class ASTNode {
- public:
-  token::Token             token;
-  std::shared_ptr<ASTNode> child;
+struct Node {
+  std::shared_ptr<Node> next;
 
   virtual auto toString(int depth = 0, bool newline = true) -> std::string;
-  inline ASTNode();
-  ASTNode(token::Token token);
-  ASTNode(token::Token token, std::shared_ptr<ASTNode> child);
+  Node();
+  Node(std::shared_ptr<Node> child);
+  virtual ~Node() {};
 };
-class ASTOp : public ASTNode {
- public:
-  // treats child as left var
-  std::shared_ptr<ASTNode> right;
+
+struct Value : Node {
+  virtual auto toString(int depth, bool newline) -> std::string = 0;
+  virtual ~Value() {};
+};
+
+struct Number : public Value {
+  double val;
 
   auto toString(int depth, bool newline) -> std::string;
-  ASTOp(token::Token token, std::shared_ptr<ASTNode> left, std::shared_ptr<ASTNode> right);
+  ~Number(){};
 };
 
-auto parse(std::vector<token::Token>& tokens) -> std::shared_ptr<ASTNode>;
+struct String : public Value {
+  std::string val;
+
+  auto toString(int depth, bool newline) -> std::string;
+  ~String(){};
+};
+
+struct Boolean : public Value {
+  bool val;
+
+  auto toString(int depth, bool newline) -> std::string;
+  ~Boolean(){};
+};
+
+struct NamedVal : public Value {
+  std::string iden;
+
+  auto toString(int depth, bool newline) -> std::string;
+  ~NamedVal(){};
+};
+
+struct Math : public Value {
+  token::tkn_type operation;
+  std::variant<std::shared_ptr<Number>, std::shared_ptr<Math>> left;
+  std::variant<std::shared_ptr<Number>, std::shared_ptr<Math>> right;
+
+  auto toString(int depth, bool newline) -> std::string;
+};
+
+struct Conditional : public Value {
+  token::tkn_type operation;
+  std::shared_ptr<Value> left;
+  std::shared_ptr<Value> right;
+
+  auto toString(int depth, bool newline) -> std::string;
+};
+
+struct Scope : public Node {
+  std::vector<std::shared_ptr<Node>> lines;
+
+  auto toString(int depth, bool newline) -> std::string;
+};
+
+struct IfCond : public Node {
+  std::shared_ptr<Conditional> cond;
+  std::shared_ptr<Scope> scope;
+
+  auto toString(int depth, bool newline) -> std::string;
+};
+
+struct FnDef : public Node {
+  std::vector<std::string> arg_names;
+  std::shared_ptr<Scope> scope;
+
+  auto toString(int depth, bool newline) -> std::string;
+};
+
+struct FnCall : public Value {
+  std::string iden;
+  std::vector<std::variant<std::shared_ptr<Value>, std::shared_ptr<Scope>>> args;
+
+  auto toString(int depth, bool newline) -> std::string;
+};
+
+struct Asmt : public Node {
+  std::string iden;
+  std::variant<std::shared_ptr<Value>, std::shared_ptr<FnDef>> val;
+
+  auto toString(int depth, bool newline) -> std::string;
+};
+
+auto parse(std::vector<token::Token>& tokens) -> std::shared_ptr<Node>;
 }  // namespace parser
