@@ -9,6 +9,10 @@ auto check_if_math(std::string c) -> bool {
   return c == "+" || c == "-" || c == "*" || c == "/" || c == "^" || c == "%";
 }
 
+auto check_if_cond(std::string c) -> bool {
+  return c == ">" || c == ">=" || c == "==" || c == "!=" || c == "<" || c == "<=";
+}
+
 auto check_if_string(std::string c) -> bool {
   // strings need to start with "
   return c[0] == '\"';
@@ -26,7 +30,6 @@ auto check_if_num(std::string s) -> bool {
   } catch (...) { return false; }
 }
 
-// this is doing way too much..
 auto math_lexlet(std::string s) -> token::Token {
   using namespace token;
   Token token = Token(s);
@@ -53,6 +56,38 @@ auto math_lexlet(std::string s) -> token::Token {
   }
   if (s == "^") {
     token.type = tkn_type::Op_pow;
+    return token;
+  }
+
+  return token;
+}
+
+auto cond_lexlet(std::string s) -> token::Token {
+  using namespace token;
+  Token token = Token(s);
+
+  if (s == ">") {
+    token.type = tkn_type::Op_gt;
+    return token;
+  }
+  if (s == ">=") {
+    token.type = tkn_type::Op_gte;
+    return token;
+  }
+  if (s == "==") {
+    token.type = tkn_type::Op_eq;
+    return token;
+  }
+  if (s == "!=") {
+    token.type = tkn_type::Op_ne;
+    return token;
+  }
+  if (s == "<") {
+    token.type = tkn_type::Op_lt;
+    return token;
+  }
+  if (s == "<=") {
+    token.type = tkn_type::Op_lte;
     return token;
   }
 
@@ -110,6 +145,11 @@ auto lexer::lex(std::string args) -> std::vector<token::Token> {
       continue;
     }
 
+    if (check_if_cond(word)) {
+      tokens.emplace_back(cond_lexlet(word));
+      continue;
+    }
+
     if (word == "true" || word == "false") {
       tokens.emplace_back(Token(tkn_type::Bool, word));
       continue;
@@ -117,6 +157,16 @@ auto lexer::lex(std::string args) -> std::vector<token::Token> {
 
     if (word == "fn") {
       tokens.emplace_back(Token(tkn_type::FuncDef, word));
+      continue;
+    }
+
+    if (word == "for") {
+      tokens.emplace_back(Token(tkn_type::For, word));
+      continue;
+    }
+
+    if (word == "if") {
+      tokens.emplace_back(Token(tkn_type::Cond, word));
       continue;
     }
 
