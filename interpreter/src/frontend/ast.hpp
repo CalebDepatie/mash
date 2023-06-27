@@ -56,8 +56,8 @@ struct NamedVal : public Value {
 
 struct Math : public Value {
   token::tkn_type operation;
-  std::variant<std::shared_ptr<Number>, std::shared_ptr<Math>> left;
-  std::variant<std::shared_ptr<Number>, std::shared_ptr<Math>> right;
+  std::variant<std::shared_ptr<Number>, std::shared_ptr<NamedVal>, std::shared_ptr<Math>> left;
+  std::variant<std::shared_ptr<Number>, std::shared_ptr<NamedVal>, std::shared_ptr<Math>> right;
 
   auto toString(int depth, bool newline) -> std::string;
 };

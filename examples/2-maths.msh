@@ -14,3 +14,8 @@ val <- 25 / 5
 val <- 3 ^ 3
 
 val <- 50 % 10
+
+val <- 5.5 * 2
+
+# evaluation is left to right, there is no order of operations
+val <- 5 * 2 + 1 % 3

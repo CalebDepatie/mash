@@ -11,7 +11,7 @@ dist-signal = "use" SP identifier SP identifier eol
 
 value = (identifier / math / string / number / conditional / func-call)
 string = DQUOTE *value-character DQUOTE
-math = number SP operation SP number
+math = (identifier / math / number) SP operation SP (identifier / math / number)
 conditional = value SP comparator SP value
 
 comparator = "<" / "<=" / "==" / ">" / ">=" / "&&" / "||"
