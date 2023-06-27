@@ -14,6 +14,7 @@ auto check_if_string(std::string c) -> bool {
   return c[0] == '\"';
 }
 
+// todo: remove?
 auto check_if_whitespace(std::string c) -> bool {
   return c == " " || c == "," || c == "\n" || c == "\r" || c == "\r\n";
 }
@@ -70,18 +71,20 @@ auto lexer::lex(std::string args) -> std::vector<token::Token> {
   bool string_flag = false;
 
   for (const auto& word : words) {
+
     // smelly
     if (string_flag) {
       tokens[tokens.size() - 1].value.append(" " + word);
-      
+
       if (word[word.size() - 1] == '\"') string_flag = false;
 
       continue;
     }
 
-    if (word[0] == '#') {
-      // skip remainder of line
-      break;
+    if (word == "\n" || word == "\r" || word == "\r\n") {
+      tokens.emplace_back(Token(tkn_type::End, word));
+
+      continue;
     }
 
     if (check_if_whitespace(word)) {
@@ -107,6 +110,16 @@ auto lexer::lex(std::string args) -> std::vector<token::Token> {
       continue;
     }
 
+    if (word == "true" || word == "false") {
+      tokens.emplace_back(Token(tkn_type::Bool, word));
+      continue;
+    }
+
+    if (word == "fn") {
+      tokens.emplace_back(Token(tkn_type::FuncDef, word));
+      continue;
+    }
+
     if (word == "<-") {
       tokens.emplace_back(Token(tkn_type::Assignment, word));
       continue;
@@ -119,6 +132,16 @@ auto lexer::lex(std::string args) -> std::vector<token::Token> {
 
     if (word == "}") {
       tokens.emplace_back(Token(tkn_type::Scope_end, word));
+      continue;
+    }
+
+    if (word == "(") {
+      tokens.emplace_back(Token(tkn_type::Param_list_start, word));
+      continue;
+    }
+
+    if (word == ")") {
+      tokens.emplace_back(Token(tkn_type::Param_list_end, word));
       continue;
     }
 
