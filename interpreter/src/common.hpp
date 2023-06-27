@@ -1,13 +1,13 @@
 #pragma once
 
-#include <string_view>
 #include <string>
+#include <string_view>
 #include <vector>
 
 // contains common code & macros
 
 constexpr bool DEBUG       = true;
-constexpr auto VERSION     = "0.0.4";
+constexpr auto VERSION     = "0.0.6";
 constexpr auto LINE_SYMBOL = "\n~> ";
 
 // terminal helpers
@@ -25,7 +25,7 @@ void print_error(std::string_view s);
 void print_debug(std::string_view s);
 
 // returns value from queue
-template<class Q>
+template <class Q>
 inline auto pop_front(Q& q) -> typename Q::value_type {
   auto front = q.front();
   q.erase(q.begin());
@@ -41,9 +41,9 @@ auto iequals(const std::string& a, const std::string& b) -> bool;
 // case insensitive version stuff for unordered_map
 // should i go nims route and be underscore insensitive too ?
 struct imaphash {
-    size_t operator()(const std::string& Keyval) const;
+  size_t operator()(const std::string& Keyval) const;
 };
 
 struct imapequal {
-    bool operator()(const std::string& Left, const std::string& Right) const;
+  bool operator()(const std::string& Left, const std::string& Right) const;
 };

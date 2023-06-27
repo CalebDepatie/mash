@@ -1,0 +1,19 @@
+#!/usr/bin/mash
+# Shells typically have some level of process control, 
+# however mash exposes it in a simplistic way
+
+# The fork command will run the block, function, or single instruction in a new task
+
+fork {
+  // processing
+}
+fork run ./2-maths.mash
+
+# The fork command returns an identifier refering to the child task
+# This will mainly be used if you want to join the task back after forking
+
+pid <- fork {
+  // processing
+}
+
+join pid

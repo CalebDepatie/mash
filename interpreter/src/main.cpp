@@ -1,51 +1,61 @@
-#include <sstream>
-#include <iostream>
 #include <filesystem>
 #include <fstream>
+#include <iostream>
+#include <sstream>
 
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
-#include "builtins.hpp"
+#include "common.hpp"
 #include "frontend/lexer.hpp"
 #include "frontend/parser.hpp"
 #include "frontend/tokens.hpp"
-#include "common.hpp"
+#include "frontend/ast.hpp"
+#include "middleend.hpp"
 
 // function declarations
 auto cmd_loop() -> void;
-inline auto parse_line(const std::string line) -> int;
+auto parse_line(const std::string line) -> int;
+auto parse_file(const std::string file) -> std::shared_ptr<parser::Node>;
 auto launch_args(const std::vector<std::string> line) -> int;
-auto execute_cmds(std::shared_ptr<parser::ASTNode> top) -> int;
+auto execute_cmds(std::vector<Execution_Key> exec_list) -> int;
 
 auto main(int argc, char* argv[]) -> int {
-
-  if constexpr(DEBUG) {
+  if constexpr (DEBUG) {
     std::cout << PURPLE << "Mash Version: " << VERSION << std::endl;
     std::cout << "WARNING: This is an early version, everything is subject to change" << std::endl;
-    std::cout << CLEAR << std::endl; // reset colours
+    std::cout << CLEAR << std::endl;  // reset colours
   }
 
   // determine if reading file or repl
   if (argc == 1) {
-    //cmd interp loop
+    // cmd interp loop
     cmd_loop();
-  
+
   } else if (argc == 2) {
     // run file
     std::ifstream script(argv[1]);
-    std::string line;
 
     if (!script.is_open()) {
       print_error("Could not open file " + std::string(argv[1]) + ", does it exist?");
+
+      return 1;
     }
 
-    while (std::getline(script, line)) {
-      int status = parse_line(line);
-    }
+    std::string file((std::istreambuf_iterator<char>(script)),
+                      std::istreambuf_iterator<char>());
 
     script.close();
+
+    // parse whole file to AST
+    auto ast = parse_file(file);
+
+    // Bake whole file
+    auto baked = bakeAST(ast);
+
+    // Send to daemon
+    // todo
 
   } else {
     print_error("Expected 1 file or none");
@@ -60,7 +70,7 @@ auto main(int argc, char* argv[]) -> int {
 auto cmd_loop() -> void {
   using namespace std;
   namespace fs = filesystem;
-  int status;
+  int    status;
   string line;
 
   do {
@@ -71,23 +81,45 @@ auto cmd_loop() -> void {
 }
 
 auto parse_line(const std::string line) -> int {
-  //auto args = args_splitter(line);
+  // auto args = args_splitter(line);
   auto tokens = lexer::lex(line);
 
   // middle end will handle this, empty vecs were being converted to AST :(
-  if (tokens.size() == 0)
-    return 0;
+  if (tokens.size() == 0) return 0;
 
   auto ast = parser::parse(tokens);
 
-  return execute_cmds(ast);
+  print_debug(ast->toString());
+
+  auto exec_list = bakeAST(ast);
+
+  return execute_cmds(exec_list);
 }
 
-auto execute_cmds(std::shared_ptr<parser::ASTNode> top) -> int {
+auto parse_file(const std::string file) -> std::shared_ptr<parser::Node> {
+  std::shared_ptr<parser::Node> ast_top;
 
-  if constexpr(DEBUG) {
-    print_debug(top->toString());
-  }
+  auto tokens = lexer::lex(file);
+
+  if (tokens.size() == 0) return ast_top;
+
+  ast_top = parser::parse(tokens);
+
+  print_debug(ast_top->toString());
+
+  return ast_top;
+}
+
+auto execute_cmds(std::vector<Execution_Key> exec_list) -> int {
+  // if constexpr (DEBUG) {
+  //   std::cout << std::endl;
+  //   for (auto& exec_key : exec_list) {
+  //     print_debug(exec_key.toString());
+  //   }
+  //   std::cout << std::endl;
+  // }
+
+  // this will send to the daemon
 
   return 1;
 }

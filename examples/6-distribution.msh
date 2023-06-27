@@ -1,0 +1,15 @@
+#!/usr/bin/mash
+# As mash is meant for task / process control, it is also able to communicate to
+# other instances of mash running on different computers
+# This communication is done through signalling
+
+# The use statement will bring the signal into the local namespace, 
+# allowing you to either notify or accept on it
+# use <signal_name> <remote_host>
+use intrusion_log central_server
+
+fork {
+  for intrusion <- accept intrustion_log {
+    run echo intrusion
+  }
+}
