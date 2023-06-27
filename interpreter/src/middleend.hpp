@@ -3,8 +3,10 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <unordered_map>
 
 #include "frontend/parser.hpp"
+#include "frontend/ast.hpp"
 
 #define OP_STRING(op)                                                                          \
   { op, #op }

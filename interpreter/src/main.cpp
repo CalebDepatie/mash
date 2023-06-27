@@ -11,6 +11,7 @@
 #include "frontend/lexer.hpp"
 #include "frontend/parser.hpp"
 #include "frontend/tokens.hpp"
+#include "frontend/ast.hpp"
 #include "middleend.hpp"
 
 // function declarations
