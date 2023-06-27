@@ -1,6 +1,8 @@
 #include "parser.hpp"
+#include "../common.hpp"
 #include <unordered_map>
 #include <utility>
+#include <iostream>
 
 constexpr int INDENT_SIZE = 2;
 
@@ -13,39 +15,130 @@ auto check_op(token::Token tkn) -> bool {
          tkn.type == tkn_type::Op_mod || tkn.type == tkn_type::Op_pow;
 }
 
+// todo: add remaining value options
+auto check_value(std::vector<token::Token>& tokens, int& pc) -> bool {
+  return tokens[pc].type == token::tkn_type::Num
+      || tokens[pc].type == token::tkn_type::String
+      || tokens[pc].type == token::tkn_type::Iden
+      || tokens[pc].type == token::tkn_type::Bool;
+}
+
+auto parseScope(std::vector<token::Token>& tokens, int& pc) -> std::shared_ptr<Scope>;
+auto parseValue(std::vector<token::Token>& tokens, int& pc) -> std::shared_ptr<Value>;
+
+auto parseFnCall(std::vector<token::Token>& tokens, int& pc) -> std::shared_ptr<FnCall> {
+  auto fncall_node = std::make_shared<FnCall>(FnCall());
+
+  fncall_node->iden = tokens[pc].value;
+  pc++;
+
+  while (tokens[pc].type != token::tkn_type::End) {
+    if (tokens[pc].type == token::tkn_type::Scope_start) {
+      fncall_node->args.emplace_back(parseScope(tokens, pc));
+
+    } else if (check_value(tokens, pc)) {
+      fncall_node->args.emplace_back(parseValue(tokens, pc));
+    }
+
+    pc++;
+  }
+
+  return fncall_node;
+}
+
+auto parseScope(std::vector<token::Token>& tokens, int& pc) -> std::shared_ptr<Scope> {
+  auto scope_node = std::make_shared<Scope>(Scope());
+
+  return scope_node;
+}
+
+auto parseValue(std::vector<token::Token>& tokens, int& pc) -> std::shared_ptr<Value> {
+  std::shared_ptr<Value> value_node;
+
+  switch (tokens[pc].type) {
+    case token::tkn_type::Num: {
+      value_node = std::make_shared<Number>(Number(tokens[pc].value));
+
+      break;
+    }
+    case token::tkn_type::String: {
+      value_node = std::make_shared<String>(String(tokens[pc].value));
+
+      break;
+    }
+    case token::tkn_type::Iden: {
+      value_node = std::make_shared<NamedVal>(NamedVal(tokens[pc].value));
+
+      break;
+    }
+    case token::tkn_type::Bool: {
+      value_node = std::make_shared<Boolean>(Boolean(tokens[pc].value));
+
+      break;
+    }
+    default: {
+      print_error("Parsing value and expect string, number, or iden. Recieved: " +
+        token::tkn_names[tokens[pc].type]);
+      break;
+    }
+  }
+
+  return value_node;
+}
+
+auto parseFnDef(std::vector<token::Token>& tokens, int& pc) -> std::shared_ptr<FnDef> {
+  auto fndef_node = std::make_shared<FnDef>(FnDef());
+
+  return fndef_node;
+}
+
+auto parseAsmt(std::vector<token::Token>& tokens, int& pc) -> std::shared_ptr<Asmt> {
+  auto asmt_node = std::make_shared<Asmt>(Asmt());
+
+  // first tkn is iden
+  asmt_node->iden = tokens[pc].value;
+  pc += 2; // second is ->
+
+  // third is a value or scope
+  if (check_value(tokens, pc)) {
+    asmt_node->val = parseValue(tokens, pc);
+
+  } else if (tokens[pc].type == token::tkn_type::FuncDef) {
+    asmt_node->val = parseFnDef(tokens, pc);
+  }
+
+  return asmt_node;
+}
+
 // generates a parse tree / AST from the tokens
-// recursive function ??
 auto parse(std::vector<token::Token>& tokens) -> std::shared_ptr<Node> {
-  std::shared_ptr<Node>             ast(new Node());
-  // std::shared_ptr<Node>             bottom = ast;
-  // std::vector<token::Token>::size_type pc  = 0;  // program / parse counter
-  //
-  // ast->token = tokens[pc++];
-  //
-  // do {
-  //   // operator case
-  //   if (tokens[pc].type == token::tkn_type::Num && tokens.size() >= 2) {
-  //     if (check_op(tokens[pc + 1])) {
-  //       // im not entirely sure whats happening here yet
-  //       std::shared_ptr<Node> left(new Node(tokens[pc++]));
-  //       auto                  op  = tokens[pc++];
-  //       auto                  val = tokens[pc++];
-  //
-  //       std::shared_ptr<Node> right(new Node(val));
-  //       std::shared_ptr<Node> parent(new Math(op, left, right));
-  //
-  //       bottom->child = parent;
-  //       bottom        = parent;
-  //       continue;
-  //     }
-  //   }
-  //
-  //   // default case
-  //   std::shared_ptr<Node> temp(new Node(tokens[pc++]));
-  //   bottom->child = temp;
-  //   bottom        = temp;
-  //
-  // } while (pc != tokens.size());
+  using namespace token;
+
+  std::shared_ptr<Node> ast(new Node());
+  std::shared_ptr<Node> bottom = ast;
+  int                   pc     = 0;  // program / parse counter
+
+  do {
+    if (tokens[pc].type == tkn_type::Iden && tokens[pc+1].type == tkn_type::Assignment) {
+      bottom->next = parseAsmt(tokens, pc);
+      pc++;
+
+    } else if (tokens[pc].type == tkn_type::Iden) {
+      // if all other options are exhausted, this must be a function call
+      bottom->next = parseFnCall(tokens, pc);
+      pc++;
+
+    } if (tokens[pc].type == tkn_type::End) {
+      // empty line! making the assumption that whole lines are covered in previous cases
+    }
+
+    // valid syntax should be covered by previous cases
+    if (bottom->next)
+      bottom = bottom->next;
+    else
+      pc++;
+
+  } while (pc < tokens.size());
 
   return ast;
 }
@@ -119,9 +212,7 @@ auto Scope::toString(int depth, bool newline) -> std::string {
   if (newline) s += "\n";
   s += createIndent(depth) + "Scope: " + "\n";
 
-  for (auto line : this->lines) {
-    s += line->toString(depth+2, true);
-  }
+  s += stringNext(this->line_top, depth, true);
 
   s += stringNext(this->next, ++depth, true);
 
@@ -211,6 +302,10 @@ auto Number::toString(int depth, bool newline) -> std::string {
   return s;
 }
 
+Number::Number(std::string s) {
+  this->val = std::stod(s);
+}
+
 auto Boolean::toString(int depth, bool newline) -> std::string {
   std::string s = "";
   if (newline) s += "\n";
@@ -220,6 +315,15 @@ auto Boolean::toString(int depth, bool newline) -> std::string {
   s += stringNext(this->next, ++depth, true);
 
   return s;
+}
+
+Boolean::Boolean(std::string s) {
+  if (s == "true") {
+    this->val = true;
+
+  } else if (s == "false") {
+    this->val = false;
+  }
 }
 
 auto String::toString(int depth, bool newline) -> std::string {
@@ -233,6 +337,10 @@ auto String::toString(int depth, bool newline) -> std::string {
   return s;
 }
 
+String::String(std::string s) {
+  this->val = s;
+}
+
 auto NamedVal::toString(int depth, bool newline) -> std::string {
   std::string s = "";
   if (newline) s += "\n";
@@ -242,6 +350,10 @@ auto NamedVal::toString(int depth, bool newline) -> std::string {
   s += stringNext(this->next, ++depth, true);
 
   return s;
+}
+
+NamedVal::NamedVal(std::string s) {
+  this->iden = s;
 }
 
 }  // namespace parser

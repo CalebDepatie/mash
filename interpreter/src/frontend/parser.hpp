@@ -1,11 +1,11 @@
 #pragma once
 
+#include "tokens.hpp"
+
 #include <memory>
 #include <string>
 #include <vector>
 #include <variant>
-
-#include "tokens.hpp"
 
 namespace parser {
 struct Node {
@@ -26,6 +26,7 @@ struct Number : public Value {
   double val;
 
   auto toString(int depth, bool newline) -> std::string;
+  Number(std::string s);
   ~Number(){};
 };
 
@@ -33,6 +34,7 @@ struct String : public Value {
   std::string val;
 
   auto toString(int depth, bool newline) -> std::string;
+  String(std::string s);
   ~String(){};
 };
 
@@ -40,6 +42,7 @@ struct Boolean : public Value {
   bool val;
 
   auto toString(int depth, bool newline) -> std::string;
+  Boolean(std::string s);
   ~Boolean(){};
 };
 
@@ -47,6 +50,7 @@ struct NamedVal : public Value {
   std::string iden;
 
   auto toString(int depth, bool newline) -> std::string;
+  NamedVal(std::string s);
   ~NamedVal(){};
 };
 
@@ -67,7 +71,7 @@ struct Conditional : public Value {
 };
 
 struct Scope : public Node {
-  std::vector<std::shared_ptr<Node>> lines;
+  std::shared_ptr<Node> line_top;
 
   auto toString(int depth, bool newline) -> std::string;
 };

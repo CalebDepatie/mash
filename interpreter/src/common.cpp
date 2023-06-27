@@ -64,8 +64,10 @@ auto args_splitter(const std::string str) -> std::vector<std::string> {
     pc++;
   }
 
-  if (pc - ipc > 0)
+  if (pc - ipc > 0) {
     tokens.emplace_back(str.substr(ipc, pc-ipc));
+    tokens.emplace_back("\n");
+  }
 
   return tokens;
 }

@@ -14,10 +14,11 @@
 #include "middleend.hpp"
 
 // function declarations
-auto        cmd_loop() -> void;
-inline auto parse_line(const std::string line) -> int;
-auto        launch_args(const std::vector<std::string> line) -> int;
-auto        execute_cmds(std::vector<Execution_Key> exec_list) -> int;
+auto cmd_loop() -> void;
+auto parse_line(const std::string line) -> int;
+auto parse_file(const std::string file) -> std::shared_ptr<parser::Node>;
+auto launch_args(const std::vector<std::string> line) -> int;
+auto execute_cmds(std::vector<Execution_Key> exec_list) -> int;
 
 auto main(int argc, char* argv[]) -> int {
   if constexpr (DEBUG) {
@@ -34,22 +35,26 @@ auto main(int argc, char* argv[]) -> int {
   } else if (argc == 2) {
     // run file
     std::ifstream script(argv[1]);
-    std::string   line;
 
     if (!script.is_open()) {
       print_error("Could not open file " + std::string(argv[1]) + ", does it exist?");
+
+      return 1;
     }
 
-    // parse whole file to AST
-    while (std::getline(script, line)) {
-      int status = parse_line(line);
-    }
+    std::string file((std::istreambuf_iterator<char>(script)),
+                      std::istreambuf_iterator<char>());
 
     script.close();
 
+    // parse whole file to AST
+    auto ast = parse_file(file);
+
     // Bake whole file
+    auto baked = bakeAST(ast);
 
     // Send to daemon
+    // todo
 
   } else {
     print_error("Expected 1 file or none");
@@ -83,11 +88,25 @@ auto parse_line(const std::string line) -> int {
 
   auto ast = parser::parse(tokens);
 
-  if constexpr (DEBUG) { print_debug(ast->toString()); }
+  print_debug(ast->toString());
 
   auto exec_list = bakeAST(ast);
 
   return execute_cmds(exec_list);
+}
+
+auto parse_file(const std::string file) -> std::shared_ptr<parser::Node> {
+  std::shared_ptr<parser::Node> ast_top;
+
+  auto tokens = lexer::lex(file);
+
+  if (tokens.size() == 0) return ast_top;
+
+  ast_top = parser::parse(tokens);
+
+  print_debug(ast_top->toString());
+
+  return ast_top;
 }
 
 auto execute_cmds(std::vector<Execution_Key> exec_list) -> int {

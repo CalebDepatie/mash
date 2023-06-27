@@ -21,8 +21,10 @@ enum class tkn_type {
   Op_pow,
   Scope_start,
   Scope_end,
+  FuncDef,
   Param_list_start,
   Param_list_end,
+  Bool,
   End,
 };
 
@@ -35,6 +37,7 @@ inline std::unordered_map<tkn_type, std::string> tkn_names = {
   TOKEN_STRING(tkn_type::Op_pow),    TOKEN_STRING(tkn_type::Scope_start),
   TOKEN_STRING(tkn_type::Scope_end), TOKEN_STRING(tkn_type::End),
   TOKEN_STRING(tkn_type::Param_list_start), TOKEN_STRING(tkn_type::Param_list_end),
+  TOKEN_STRING(tkn_type::FuncDef), TOKEN_STRING(tkn_type::Bool),
 };
 
 #undef TOKEN_STRING
