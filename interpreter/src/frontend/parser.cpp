@@ -61,35 +61,62 @@ auto parseScope(std::vector<token::Token>& tokens, int& pc) -> std::shared_ptr<S
   return scope_node;
 }
 
+auto parseMath(std::vector<token::Token>& tokens, int& pc) -> std::shared_ptr<Math> {
+  auto math_node = std::make_shared<Math>(Math());
+
+  // (identifier/math/number) SP operation SP (identifier/math/number)
+  if (tokens[pc].type == token::tkn_type::Num) {
+    math_node->left = std::make_shared<Number>(Number(tokens[pc].value));
+
+  } else if (tokens[pc].type == token::tkn_type::Iden) {
+    math_node->left = std::make_shared<NamedVal>(NamedVal(tokens[pc].value));
+  }
+
+  pc++;
+  math_node->operation = tokens[pc++].type;
+
+  if (pc+2 < tokens.size() && tokens[pc+1].type != token::tkn_type::End) { // safety for larger requirements
+    if (check_op(tokens[pc+1])) {
+      math_node->right = parseMath(tokens, pc);
+    }
+
+  } else if (tokens[pc].type == token::tkn_type::Num) {
+    math_node->right = std::make_shared<Number>(Number(tokens[pc].value));
+
+  } else if (tokens[pc].type == token::tkn_type::Iden) {
+    math_node->right = std::make_shared<NamedVal>(NamedVal(tokens[pc].value));
+  }
+
+  return math_node;
+}
+
 auto parseValue(std::vector<token::Token>& tokens, int& pc) -> std::shared_ptr<Value> {
   std::shared_ptr<Value> value_node;
 
-  switch (tokens[pc].type) {
-    case token::tkn_type::Num: {
-      value_node = std::make_shared<Number>(Number(tokens[pc].value));
+  // todo: conds, and fncall
+  if (pc+2 < tokens.size()) { // safety for larger requirements
+    if (check_op(tokens[pc+1])) {
+      value_node = parseMath(tokens, pc);
+      return value_node;
+    }
 
-      break;
-    }
-    case token::tkn_type::String: {
-      value_node = std::make_shared<String>(String(tokens[pc].value));
+  }
 
-      break;
-    }
-    case token::tkn_type::Iden: {
-      value_node = std::make_shared<NamedVal>(NamedVal(tokens[pc].value));
+  if (tokens[pc].type == token::tkn_type::Num) {
+    value_node = std::make_shared<Number>(Number(tokens[pc].value));
 
-      break;
-    }
-    case token::tkn_type::Bool: {
-      value_node = std::make_shared<Boolean>(Boolean(tokens[pc].value));
+  } else if (tokens[pc].type == token::tkn_type::String) {
+    value_node = std::make_shared<String>(String(tokens[pc].value));
 
-      break;
-    }
-    default: {
-      print_error("Parsing value and expect string, number, or iden. Recieved: " +
-        token::tkn_names[tokens[pc].type]);
-      break;
-    }
+  } else if (tokens[pc].type == token::tkn_type::Iden) {
+    value_node = std::make_shared<NamedVal>(NamedVal(tokens[pc].value));
+
+  } else if (tokens[pc].type == token::tkn_type::Bool) {
+    value_node = std::make_shared<Boolean>(Boolean(tokens[pc].value));
+
+  } else {
+    print_error("Parsing value and expect string, number, or iden. Recieved: " +
+      token::tkn_names[tokens[pc].type]);
   }
 
   return value_node;

@@ -40,12 +40,16 @@ auto Math::toString(int depth, bool newline) -> std::string {
   if (newline) s += "\n";
   s += createIndent(depth+2) + "Math" + "\n";
 
-  auto stringMath = [](std::variant<std::shared_ptr<Number>, std::shared_ptr<Math>> n, int d) {
+  auto stringMath = [](std::variant<std::shared_ptr<Number>, std::shared_ptr<NamedVal>, std::shared_ptr<Math>> n, int d) {
     if (std::holds_alternative<std::shared_ptr<Number>>(n)) {
       return std::get<std::shared_ptr<Number>>(n)->toString(d, false);
 
     } else if (std::holds_alternative<std::shared_ptr<Math>>(n)) {
       return std::get<std::shared_ptr<Math>>(n)->toString(d, false);
+
+    } else if (std::holds_alternative<std::shared_ptr<NamedVal>>(n)) {
+      return std::get<std::shared_ptr<NamedVal>>(n)->toString(d, false);
+
     } else {
       return std::string("");
     }
