@@ -5,7 +5,7 @@
 # The fork command will run the block, function, or single instruction in a new task
 
 fork {
-  # processing
+  val <- 3 / 4
 }
 fork run ./2-maths.mash
 
@@ -13,7 +13,7 @@ fork run ./2-maths.mash
 # This will mainly be used if you want to join the task back after forking
 
 pid <- fork {
-  # processing
+  val <- 8 * 2
 }
 
 join pid

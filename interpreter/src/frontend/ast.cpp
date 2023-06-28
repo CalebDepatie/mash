@@ -55,7 +55,7 @@ auto Math::toString(int depth, bool newline) -> std::string {
     }
   };
 
-  s += stringMath(this->left, depth) + token::tkn_names[this->operation] + stringMath(this->right, depth+4);
+  s += stringMath(this->left, depth) + " " + token::tkn_names[this->operation] + stringMath(this->right, 1);
   s += stringNext(this->next, ++depth, true);
 
   return s;
@@ -79,9 +79,9 @@ auto Scope::toString(int depth, bool newline) -> std::string {
   if (newline) s += "\n";
   s += createIndent(depth) + "Scope: " + "\n";
 
-  s += stringNext(this->line_top, depth, true);
+  s += stringNext(this->line_top, depth+1, true);
 
-  s += "\n" + createIndent(depth) + "End Scope\n"; 
+  s += "\n" + createIndent(depth) + "End Scope\n";
 
   s += stringNext(this->next, depth, true);
 
@@ -124,14 +124,14 @@ auto FnCall::toString(int depth, bool newline) -> std::string {
   std::string s = "";
   if (newline) s += "\n";
   s += createIndent(depth) + "FnCall: ";
-  s += this->iden + "\n";
+  s += this->iden + "\n" + createIndent(depth) + "Args: \n";
 
   for (auto arg : this->args) {
     if (std::holds_alternative<std::shared_ptr<Value>>(arg)) {
-      s += std::get<std::shared_ptr<Value>>(arg)->toString(depth, false);
+      s += std::get<std::shared_ptr<Value>>(arg)->toString(depth+1, false);
 
     } else if (std::holds_alternative<std::shared_ptr<Scope>>(arg)) {
-      s += std::get<std::shared_ptr<Scope>>(arg)->toString(depth, false);
+      s += std::get<std::shared_ptr<Scope>>(arg)->toString(depth+1, false);
     }
   }
 
@@ -148,10 +148,10 @@ auto Asmt::toString(int depth, bool newline) -> std::string {
   s += this->iden + "\n";
 
   if (std::holds_alternative<std::shared_ptr<Value>>(this->val)) {
-    s += std::get<std::shared_ptr<Value>>(this->val)->toString(depth, false);
+    s += std::get<std::shared_ptr<Value>>(this->val)->toString(depth+1, false);
 
   } else if (std::holds_alternative<std::shared_ptr<FnDef>>(this->val)) {
-    s += std::get<std::shared_ptr<FnDef>>(this->val)->toString(depth, false);
+    s += std::get<std::shared_ptr<FnDef>>(this->val)->toString(depth+1, false);
   }
 
   s += stringNext(this->next, ++depth, true);

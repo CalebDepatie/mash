@@ -47,14 +47,18 @@ auto parseFnCall(std::vector<token::Token>& tokens, int& pc) -> std::shared_ptr<
   auto fncall_node = std::make_shared<FnCall>(FnCall());
 
   fncall_node->iden = tokens[pc].value;
-  pc++;
+  ++pc;
 
   while (tokens[pc].type != token::tkn_type::End) {
-    if (check_value(tokens[pc])) {
+    if (tokens[pc].type == token::tkn_type::Scope_start) {
+      ++pc;
+      fncall_node->args.emplace_back(parse(tokens, pc));
+
+    } else if (check_value(tokens[pc])) {
       fncall_node->args.emplace_back(parseValue(tokens, pc));
     }
 
-    pc++;
+    ++pc;
   }
 
   return fncall_node;
@@ -94,7 +98,6 @@ auto parseValue(std::vector<token::Token>& tokens, int& pc, const bool composite
 
   std::shared_ptr<Value> value_node;
 
-  // todo: fncall
   if (composite) {
     if (pc+2 < tokens.size()) { // safety for larger requirements
       if (check_op(tokens[pc+1])) {
@@ -106,9 +109,16 @@ auto parseValue(std::vector<token::Token>& tokens, int& pc, const bool composite
       } else if (tokens[pc+1].type == tkn_type::Range) {
         value_node = parseRange(tokens, pc);
       }
+    }
 
-      if (value_node)
+    if (value_node) {
+      return value_node;
+
+    } else if (pc+1 < tokens.size()) {
+      if (tokens[pc].type == tkn_type::Iden) {
+        value_node = parseFnCall(tokens, pc);
         return value_node;
+      }
     }
   }
 
