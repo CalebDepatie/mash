@@ -166,6 +166,7 @@ auto Loop::toString(int depth, bool newline) -> std::string {
   s += createIndent(depth) + "Loop: ";
 
   s += this->asmt->toString(depth, false);
+  s += "\n" + createIndent(depth) + "Loop Scope: ";
   s += this->scope->toString(depth+2, true);
 
   s += stringNext(this->next, ++depth, true);

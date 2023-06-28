@@ -10,7 +10,7 @@
 namespace parser {
 // declarations
 auto parseFnCall(std::vector<token::Token>& tokens, int& pc) -> std::shared_ptr<FnCall>;
-auto parseValue(std::vector<token::Token>& tokens, int& pc, const bool composite=true) -> std::shared_ptr<Value>;
+auto parseValue(std::vector<token::Token>& tokens, int& pc, const bool composite=true, const bool fncheck=true) -> std::shared_ptr<Value>;
 auto parseFnDef(std::vector<token::Token>& tokens, int& pc) -> std::shared_ptr<FnDef>;
 auto parseAsmt(std::vector<token::Token>& tokens, int& pc) -> std::shared_ptr<Asmt>;
 auto parseIfCond(std::vector<token::Token>& tokens, int& pc) -> std::shared_ptr<IfCond>;
@@ -52,10 +52,10 @@ auto parseFnCall(std::vector<token::Token>& tokens, int& pc) -> std::shared_ptr<
   while (tokens[pc].type != token::tkn_type::End) {
     if (tokens[pc].type == token::tkn_type::Scope_start) {
       ++pc;
-      fncall_node->args.emplace_back(parse(tokens, pc));
+      fncall_node->args.push_back(parse(tokens, pc));
 
     } else if (check_value(tokens[pc])) {
-      fncall_node->args.emplace_back(parseValue(tokens, pc));
+      fncall_node->args.push_back(parseValue(tokens, pc, true, false));
     }
 
     ++pc;
@@ -93,7 +93,7 @@ auto parseMath(std::vector<token::Token>& tokens, int& pc) -> std::shared_ptr<Ma
   return math_node;
 }
 
-auto parseValue(std::vector<token::Token>& tokens, int& pc, const bool composite) -> std::shared_ptr<Value> {
+auto parseValue(std::vector<token::Token>& tokens, int& pc, const bool composite, const bool fncheck) -> std::shared_ptr<Value> {
   using namespace token;
 
   std::shared_ptr<Value> value_node;
@@ -114,7 +114,7 @@ auto parseValue(std::vector<token::Token>& tokens, int& pc, const bool composite
     if (value_node) {
       return value_node;
 
-    } else if (pc+1 < tokens.size()) {
+    } else if (pc+1 < tokens.size() && fncheck) {
       if (tokens[pc].type == tkn_type::Iden) {
         value_node = parseFnCall(tokens, pc);
         return value_node;
@@ -176,9 +176,26 @@ auto parseLoop(std::vector<token::Token>& tokens, int& pc) -> std::shared_ptr<Lo
   ++pc;
 
   loop_node->asmt = parseAsmt(tokens, pc);
-  ++pc;
 
-  loop_node->scope = parse(tokens, pc);
+  // this is to counteract an issue from ambiguous syntax
+  // when a function call is used for the loop asmt
+  if (tokens[pc].type == token::tkn_type::Scope_start) {
+    ++pc;
+    loop_node->scope = parse(tokens, pc);
+
+  } else {
+    // assumes the last 'argument' is the loop scope
+    if (auto value_asmt = std::get_if<std::shared_ptr<Value>>(&loop_node->asmt->val)) {
+      if (auto fncall = std::dynamic_pointer_cast<FnCall>(*value_asmt)) {
+        if (auto scope_arg = std::get_if<std::shared_ptr<Scope>>(&fncall->args[fncall->args.size()-1])) {
+          loop_node->scope = *scope_arg;
+          fncall->args.pop_back();
+        }
+      }
+    }
+  }
+
+
 
   return loop_node;
 }

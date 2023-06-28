@@ -6,6 +6,7 @@
 
 fork {
   val <- 3 / 4
+  val <- val ^ val
 }
 fork run ./2-maths.mash
 

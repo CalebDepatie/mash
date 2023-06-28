@@ -27,10 +27,12 @@ auto args_splitter(const std::string str) -> std::vector<std::string> {
       comment_flag = true;
 
     if (comment_flag) {
-      if ((str[pc] == '\r' && str[pc+1] == '\n') || str[pc] == '\n') {
-        comment_flag = false;
+      if (pc > 0) {
+        if ((str[pc-1] == '\r' && str[pc] == '\n') || str[pc] == '\n') {
+          comment_flag = false;
 
-        ipc = ++pc;
+          ipc = pc+1;
+        }
       }
 
       pc++;

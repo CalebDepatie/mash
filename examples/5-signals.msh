@@ -29,7 +29,7 @@ accept time day Monday
 # This creates an infinite loop (unless you manually exit) that will run a sequence of commands every signal
 
 for val <- accept test {
-
+  run echo val + 1
 }
 
 # Remember, accept can be used for dates,
