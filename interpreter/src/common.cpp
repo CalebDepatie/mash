@@ -50,7 +50,7 @@ auto args_splitter(const std::string str) -> std::vector<std::string> {
 
       tokens.emplace_back("\r\n");
       pc += 1;
-      ipc = pc;
+      ipc = pc+1;
     }
 
     if (str[pc] == '\n') {
@@ -58,7 +58,7 @@ auto args_splitter(const std::string str) -> std::vector<std::string> {
         tokens.emplace_back(str.substr(ipc, pc-ipc));
 
       tokens.emplace_back("\n");
-      ipc = pc;
+      ipc = pc+1;
     }
 
     pc++;

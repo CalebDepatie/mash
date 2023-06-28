@@ -5,14 +5,15 @@ func-call = identifier *(SP (value / scope)) eol
 func-def = "fn" SP "(" *identifier ")" SP scope
 exec-line = assignment / func-call / scope/ if-cond / loop
 scope = "{" eol 1*(HTAB exec-line eol) "}" eol
-if-cond = "if" SP comparator SP scope
+if-cond = "if" SP conditional SP scope
 loop = "for" SP assignment SP scope
 dist-signal = "use" SP identifier SP identifier eol
 
-value = (identifier / math / string / number / conditional / func-call)
+value = (identifier / math / string / number / conditional / func-call / range)
 string = DQUOTE *value-character DQUOTE
 math = (identifier / math / number) SP operation SP (identifier / math / number)
 conditional = value SP comparator SP value
+range = number SP ".." SP number
 
 comparator = "<" / "<=" / "==" / ">" / ">=" / "&&" / "||"
 operation = "+" / "-" / "/" / "*" / "^" / "%"

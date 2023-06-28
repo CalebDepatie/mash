@@ -8,9 +8,9 @@ if val < 3 {
 }
 
 for i <- 1 .. 3 {
-    run echo "Looping: " + i
+    run echo "Looping: " i
 }
 
-new_func <- fn (param) {
-  return param+1
+new_func <- fn ( param ) {
+  return param + 1
 }

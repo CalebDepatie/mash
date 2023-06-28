@@ -5,6 +5,8 @@
 #include "lexer.hpp"
 #include "tokens.hpp"
 
+#include <iostream>
+
 auto check_if_math(std::string c) -> bool {
   return c == "+" || c == "-" || c == "*" || c == "/" || c == "^" || c == "%";
 }
@@ -167,6 +169,11 @@ auto lexer::lex(std::string args) -> std::vector<token::Token> {
 
     if (word == "if") {
       tokens.emplace_back(Token(tkn_type::Cond, word));
+      continue;
+    }
+
+    if (word == "..") {
+      tokens.emplace_back(Token(tkn_type::Range, word));
       continue;
     }
 

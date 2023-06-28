@@ -81,7 +81,9 @@ auto Scope::toString(int depth, bool newline) -> std::string {
 
   s += stringNext(this->line_top, depth, true);
 
-  s += stringNext(this->next, ++depth, true);
+  s += "\n" + createIndent(depth) + "End Scope\n"; 
+
+  s += stringNext(this->next, depth, true);
 
   return s;
 }
@@ -157,6 +159,20 @@ auto Asmt::toString(int depth, bool newline) -> std::string {
   return s;
 }
 
+// --- Loop ---
+auto Loop::toString(int depth, bool newline) -> std::string {
+  std::string s = "";
+  if (newline) s += "\n";
+  s += createIndent(depth) + "Loop: ";
+
+  s += this->asmt->toString(depth, false);
+  s += this->scope->toString(depth+2, true);
+
+  s += stringNext(this->next, ++depth, true);
+
+  return s;
+}
+
 // --- Values ---
 auto Number::toString(int depth, bool newline) -> std::string {
   std::string s = "";
@@ -221,5 +237,17 @@ auto NamedVal::toString(int depth, bool newline) -> std::string {
 
 NamedVal::NamedVal(std::string s) {
   this->iden = s;
+}
+
+auto Range::toString(int depth, bool newline) -> std::string {
+  std::string s = "";
+  if (newline) s += "\n";
+
+  s += createIndent(depth) + "Range: ";
+  s += this->from->toString(0, false) + " .. " + this->to->toString(0, false);
+
+  s += stringNext(this->next, ++depth, true);
+
+  return s;
 }
 }

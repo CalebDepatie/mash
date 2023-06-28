@@ -87,7 +87,8 @@ auto parse_line(const std::string line) -> int {
   // middle end will handle this, empty vecs were being converted to AST :(
   if (tokens.size() == 0) return 0;
 
-  auto ast = parser::parse(tokens);
+  int pc = 0; // this is really evaluating a scope, so an initialized parse counter is required
+  auto ast = parser::parse(tokens, pc);
 
   print_debug(ast->toString());
 
@@ -103,7 +104,8 @@ auto parse_file(const std::string file) -> std::shared_ptr<parser::Node> {
 
   if (tokens.size() == 0) return ast_top;
 
-  ast_top = parser::parse(tokens);
+  int pc = 0; // this is really evaluating a scope, so an initialized parse counter is required
+  ast_top = parser::parse(tokens, pc);
 
   print_debug(ast_top->toString());
 

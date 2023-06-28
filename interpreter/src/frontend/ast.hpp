@@ -73,7 +73,7 @@ struct Conditional : public Value {
 struct Scope : public Node {
   std::shared_ptr<Node> line_top;
 
-  auto toString(int depth, bool newline) -> std::string;
+  auto toString(int depth = 0, bool newline = true) -> std::string;
 };
 
 struct IfCond : public Node {
@@ -100,6 +100,20 @@ struct FnCall : public Value {
 struct Asmt : public Node {
   std::string iden;
   std::variant<std::shared_ptr<Value>, std::shared_ptr<FnDef>> val;
+
+  auto toString(int depth, bool newline) -> std::string;
+};
+
+struct Loop : public Node {
+  std::shared_ptr<Asmt> asmt;
+  std::shared_ptr<Scope> scope;
+
+  auto toString(int depth, bool newline) -> std::string;
+};
+
+struct Range : public Value {
+  std::shared_ptr<Number> from;
+  std::shared_ptr<Number> to;
 
   auto toString(int depth, bool newline) -> std::string;
 };
