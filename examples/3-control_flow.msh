@@ -8,7 +8,7 @@ if val < 3 {
 }
 
 for i <- 1 .. 3 {
-    run echo "Looping: " i
+    run echo i
 }
 
 new_func <- fn ( param ) {

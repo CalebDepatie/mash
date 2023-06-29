@@ -17,7 +17,7 @@
 // function declarations
 auto cmd_loop() -> void;
 auto parse_line(const std::string line) -> int;
-auto parse_file(const std::string file) -> std::shared_ptr<parser::Node>;
+auto parse_file(const std::string file) -> std::shared_ptr<parser::Scope>;
 auto launch_args(const std::vector<std::string> line) -> int;
 auto execute_cmds(std::vector<Execution_Key> exec_list) -> int;
 
@@ -53,6 +53,12 @@ auto main(int argc, char* argv[]) -> int {
 
     // Bake whole file
     auto baked = bakeAST(ast);
+
+    if constexpr(DEBUG) {
+      print_debug("Baked AST:");
+      for (auto& code : baked)
+        print_debug(code.toString());
+    }
 
     // Send to daemon
     // todo
@@ -97,8 +103,8 @@ auto parse_line(const std::string line) -> int {
   return execute_cmds(exec_list);
 }
 
-auto parse_file(const std::string file) -> std::shared_ptr<parser::Node> {
-  std::shared_ptr<parser::Node> ast_top;
+auto parse_file(const std::string file) -> std::shared_ptr<parser::Scope> {
+  std::shared_ptr<parser::Scope> ast_top;
 
   auto tokens = lexer::lex(file);
 

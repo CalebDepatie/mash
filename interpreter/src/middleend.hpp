@@ -20,6 +20,9 @@ enum Operation {
   Asmt,
   Loop,
   Cond,
+  StringVal,
+  NumberVal,
+  BoolVal,
   Recall,
   Notify,
   Accept,
@@ -35,6 +38,9 @@ inline std::unordered_map<Operation, std::string> op_names = {
   OP_STRING(Operation::Asmt),
   OP_STRING(Operation::Loop),
   OP_STRING(Operation::Cond),
+  OP_STRING(Operation::StringVal),
+  OP_STRING(Operation::NumberVal),
+  OP_STRING(Operation::BoolVal),
   OP_STRING(Operation::Recall),
   OP_STRING(Operation::Notify),
   OP_STRING(Operation::Accept),
@@ -50,4 +56,4 @@ struct Execution_Key {
   auto toString() -> std::string;
 };
 
-auto bakeAST(std::shared_ptr<parser::Node> execTop) -> std::vector<Execution_Key>;
+auto bakeAST(std::shared_ptr<parser::Scope> execTop) -> std::vector<Execution_Key>;
