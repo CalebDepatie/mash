@@ -176,6 +176,7 @@ auto parseLoop(std::vector<token::Token>& tokens, int& pc) -> std::shared_ptr<Lo
   ++pc;
 
   loop_node->asmt = parseAsmt(tokens, pc);
+  ++pc;
 
   // this is to counteract an issue from ambiguous syntax
   // when a function call is used for the loop asmt
@@ -190,12 +191,11 @@ auto parseLoop(std::vector<token::Token>& tokens, int& pc) -> std::shared_ptr<Lo
         if (auto scope_arg = std::get_if<std::shared_ptr<Scope>>(&fncall->args[fncall->args.size()-1])) {
           loop_node->scope = *scope_arg;
           fncall->args.pop_back();
+
         }
       }
     }
   }
-
-
 
   return loop_node;
 }
@@ -270,7 +270,6 @@ auto parse(std::vector<token::Token>& tokens, int& pc) -> std::shared_ptr<Scope>
       pc++;
 
     } else if (tokens[pc].type == tkn_type::Iden) {
-
       // if all other options are exhausted, this must be a function call
       bottom->next = parseFnCall(tokens, pc);
       pc++;
@@ -290,6 +289,9 @@ auto parse(std::vector<token::Token>& tokens, int& pc) -> std::shared_ptr<Scope>
       pc++;
 
   } while (pc < tokens.size());
+
+  // remove place holder node
+  ast->line_top = ast->line_top->next;
 
   return ast;
 }

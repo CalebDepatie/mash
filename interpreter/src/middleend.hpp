@@ -20,12 +20,13 @@ enum Operation {
   Asmt,
   Loop,
   Cond,
+  If,
+  FnDef,
   StringVal,
   NumberVal,
   BoolVal,
+  RangeVal,
   Recall,
-  Notify,
-  Accept,
   ClearReg,  // essentially an End Line
 };
 
@@ -38,12 +39,13 @@ inline std::unordered_map<Operation, std::string> op_names = {
   OP_STRING(Operation::Asmt),
   OP_STRING(Operation::Loop),
   OP_STRING(Operation::Cond),
+  OP_STRING(Operation::If),
+  OP_STRING(Operation::FnDef),
   OP_STRING(Operation::StringVal),
   OP_STRING(Operation::NumberVal),
   OP_STRING(Operation::BoolVal),
+  OP_STRING(Operation::RangeVal),
   OP_STRING(Operation::Recall),
-  OP_STRING(Operation::Notify),
-  OP_STRING(Operation::Accept),
   OP_STRING(Operation::ClearReg),
 };
 

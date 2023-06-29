@@ -77,7 +77,7 @@ auto Conditional::toString(int depth, bool newline) -> std::string {\
 auto Scope::toString(int depth, bool newline) -> std::string {
   std::string s = "";
   if (newline) s += "\n";
-  s += createIndent(depth) + "Scope: " + "\n";
+  s += createIndent(depth) + "Scope: ";
 
   s += stringNext(this->line_top, depth+1, true);
 
@@ -167,7 +167,7 @@ auto Loop::toString(int depth, bool newline) -> std::string {
 
   s += this->asmt->toString(depth, false);
   s += "\n" + createIndent(depth) + "Loop Scope: ";
-  s += this->scope->toString(depth+2, true);
+  s += stringNext(this->scope, depth+2, true);
 
   s += stringNext(this->next, ++depth, true);
 
