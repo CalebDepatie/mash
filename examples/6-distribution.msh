@@ -9,9 +9,8 @@
 use intrusion_log central_server
 
 fork {
-
   for intrusion <- accept intrustion_log {
     run echo intrusion
   }
-
+  
 }

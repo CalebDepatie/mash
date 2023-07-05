@@ -8,3 +8,7 @@ mash_daemon:
 
 mash:
 	cd ./interpreter/build && ninja -j2
+
+test:
+	cd ./daemon && \
+	go test

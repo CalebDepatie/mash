@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	gc "github.com/CalebDepatie/go-common"
-  "net"
+	"net"
 	"os"
 )
 
