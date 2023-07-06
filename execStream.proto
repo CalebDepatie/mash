@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+// required for go
+option go_package = "/execStream";
+
+enum Operation {
+  Begin      = 0; // Start of a new script / REPL session
+  End        = 1; // Tells the executor it can safely end the task
+  ScopeStart = 2;
+  ScopeEnd   = 3;
+  Math       = 4;
+  Asmt       = 5;
+  Loop       = 6;
+  Cond       = 7;
+  If         = 8;
+  FnDef      = 9;
+  StringVal  = 10;
+  NumberVal  = 11;
+  BoolVal    = 12;
+  RangeVal   = 13;
+  Recall     = 14;
+  ClearReg   = 15; // essentially an End Line
+}
+
+message ExecStream {
+  repeated ExecKey execKeys = 1;
+  string currentWorkingDir = 2; // required
+}
+
+message ExecKey {
+  Operation op = 1;
+  oneof content {
+    string stringValue  = 2;
+    double numberValue  = 3;
+    bool   booleanValue = 4;
+    Range  rangeValue = 5;
+  }
+}
+
+message Range {
+  int32 from = 1;
+  int32 to   = 2;
+}
+
+message ExecResponse {
+  string error  = 1;
+  string result = 2;
+}

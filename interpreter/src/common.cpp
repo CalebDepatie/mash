@@ -8,7 +8,9 @@ void print_error(std::string_view s) {
 }
 
 void print_debug(std::string_view s) {
-  if constexpr (DEBUG) { std::cout << YELLOW << "Debug: " << s << CLEAR << std::endl; }
+  if constexpr (DEBUG) {
+    std::cout << YELLOW << "Debug: " << s << CLEAR << std::endl;
+  }
 }
 
 auto args_splitter(const std::string str) -> std::vector<std::string> {
@@ -18,8 +20,8 @@ auto args_splitter(const std::string str) -> std::vector<std::string> {
   // had to replace getline for splitting to words
   // this now includes newlines as seperate 'words' and generally
   // does a better job of seperating words
-  int pc = 0; // counter
-  int ipc = 0; // initial counter
+  int  pc           = 0;  // counter
+  int  ipc          = 0;  // initial counter
   bool comment_flag = false;
 
   while (pc < str.size()) {
@@ -28,10 +30,10 @@ auto args_splitter(const std::string str) -> std::vector<std::string> {
 
     if (comment_flag) {
       if (pc > 0) {
-        if ((str[pc-1] == '\r' && str[pc] == '\n') || str[pc] == '\n') {
+        if ((str[pc - 1] == '\r' && str[pc] == '\n') || str[pc] == '\n') {
           comment_flag = false;
 
-          ipc = pc+1;
+          ipc = pc + 1;
         }
       }
 
@@ -41,33 +43,33 @@ auto args_splitter(const std::string str) -> std::vector<std::string> {
 
     if (str[pc] == ' ') {
       if (pc - ipc > 0)
-        tokens.emplace_back(str.substr(ipc, pc-ipc));
+        tokens.emplace_back(str.substr(ipc, pc - ipc));
 
-      ipc = pc+1;
+      ipc = pc + 1;
     }
 
-    if (str[pc] == '\r' && str[pc+1] == '\n') {
+    if (str[pc] == '\r' && str[pc + 1] == '\n') {
       if (pc - ipc > 0)
-        tokens.emplace_back(str.substr(ipc, pc-ipc));
+        tokens.emplace_back(str.substr(ipc, pc - ipc));
 
       tokens.emplace_back("\r\n");
       pc += 1;
-      ipc = pc+1;
+      ipc = pc + 1;
     }
 
     if (str[pc] == '\n') {
       if (pc - ipc > 0)
-        tokens.emplace_back(str.substr(ipc, pc-ipc));
+        tokens.emplace_back(str.substr(ipc, pc - ipc));
 
       tokens.emplace_back("\n");
-      ipc = pc+1;
+      ipc = pc + 1;
     }
 
     pc++;
   }
 
   if (pc - ipc > 0) {
-    tokens.emplace_back(str.substr(ipc, pc-ipc));
+    tokens.emplace_back(str.substr(ipc, pc - ipc));
     tokens.emplace_back("\n");
   }
 

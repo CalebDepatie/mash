@@ -8,10 +8,10 @@
 #include <unistd.h>
 
 #include "common.hpp"
+#include "frontend/ast.hpp"
 #include "frontend/lexer.hpp"
 #include "frontend/parser.hpp"
 #include "frontend/tokens.hpp"
-#include "frontend/ast.hpp"
 #include "middleend.hpp"
 
 // function declarations
@@ -19,7 +19,7 @@ auto cmd_loop() -> void;
 auto parse_line(const std::string line) -> int;
 auto parse_file(const std::string file) -> std::shared_ptr<parser::Scope>;
 auto launch_args(const std::vector<std::string> line) -> int;
-auto execute_cmds(std::vector<Execution_Key> exec_list) -> int;
+auto execute_cmds(std::vector<ExecKey> exec_list) -> int;
 
 auto main(int argc, char* argv[]) -> int {
   if constexpr (DEBUG) {
@@ -43,8 +43,7 @@ auto main(int argc, char* argv[]) -> int {
       return 1;
     }
 
-    std::string file((std::istreambuf_iterator<char>(script)),
-                      std::istreambuf_iterator<char>());
+    std::string file((std::istreambuf_iterator<char>(script)), std::istreambuf_iterator<char>());
 
     script.close();
 
@@ -54,10 +53,9 @@ auto main(int argc, char* argv[]) -> int {
     // Bake whole file
     auto baked = bakeAST(ast);
 
-    if constexpr(DEBUG) {
+    if constexpr (DEBUG) {
       print_debug("Baked AST:");
-      for (auto& code : baked)
-        print_debug(code.toString());
+      print_debug(baked.DebugString());
     }
 
     // Send to daemon
@@ -91,16 +89,17 @@ auto parse_line(const std::string line) -> int {
   auto tokens = lexer::lex(line);
 
   // middle end will handle this, empty vecs were being converted to AST :(
-  if (tokens.size() == 0) return 0;
+  if (tokens.size() == 0)
+    return 0;
 
-  int pc = 0; // this is really evaluating a scope, so an initialized parse counter is required
+  int  pc  = 0;  // this is really evaluating a scope, so an initialized parse counter is required
   auto ast = parser::parse(tokens, pc);
 
   print_debug(ast->toString());
 
   auto exec_list = bakeAST(ast);
 
-  return execute_cmds(exec_list);
+  // return execute_cmds(exec_list);
 }
 
 auto parse_file(const std::string file) -> std::shared_ptr<parser::Scope> {
@@ -108,9 +107,10 @@ auto parse_file(const std::string file) -> std::shared_ptr<parser::Scope> {
 
   auto tokens = lexer::lex(file);
 
-  if (tokens.size() == 0) return ast_top;
+  if (tokens.size() == 0)
+    return ast_top;
 
-  int pc = 0; // this is really evaluating a scope, so an initialized parse counter is required
+  int pc  = 0;  // this is really evaluating a scope, so an initialized parse counter is required
   ast_top = parser::parse(tokens, pc);
 
   print_debug(ast_top->toString());
@@ -118,7 +118,7 @@ auto parse_file(const std::string file) -> std::shared_ptr<parser::Scope> {
   return ast_top;
 }
 
-auto execute_cmds(std::vector<Execution_Key> exec_list) -> int {
+auto execute_cmds(std::vector<ExecKey> exec_list) -> int {
   // if constexpr (DEBUG) {
   //   std::cout << std::endl;
   //   for (auto& exec_key : exec_list) {

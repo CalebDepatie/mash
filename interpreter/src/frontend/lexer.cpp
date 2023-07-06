@@ -101,19 +101,20 @@ auto lexer::lex(std::string args) -> std::vector<token::Token> {
 
   std::vector<Token> tokens;
 
-  if (args == "") return tokens;
+  if (args == "")
+    return tokens;
 
   // split string to its components
   auto words       = args_splitter(args);
   bool string_flag = false;
 
   for (const auto& word : words) {
-
     // smelly
     if (string_flag) {
       tokens[tokens.size() - 1].value.append(" " + word);
 
-      if (word[word.size() - 1] == '\"') string_flag = false;
+      if (word[word.size() - 1] == '\"')
+        string_flag = false;
 
       continue;
     }
@@ -137,7 +138,8 @@ auto lexer::lex(std::string args) -> std::vector<token::Token> {
     if (check_if_string(word)) {
       tokens.emplace_back(Token(tkn_type::String, word));
 
-      if (word[word.size() - 1] != '\"') string_flag = true;
+      if (word[word.size() - 1] != '\"')
+        string_flag = true;
 
       continue;
     }
@@ -206,7 +208,8 @@ auto lexer::lex(std::string args) -> std::vector<token::Token> {
     tokens.emplace_back(Token(tkn_type::Iden, word));
   }
 
-  if (string_flag) print_error("Still parsing string, was it terminated?");
+  if (string_flag)
+    print_error("Still parsing string, was it terminated?");
 
   return tokens;
 }

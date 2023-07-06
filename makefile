@@ -1,14 +1,24 @@
-build: mash_daemon mash
+.PHONY: all mash test fmt protobufs
 
-mash_daemon_exec:
-	go run ./daemon
+all: mash
 
-mash_daemon:
-	go build ./daemon
-
-mash:
+mash: protobufs
 	cd ./interpreter/build && ninja -j2
 
-test:
+protobufs: daemon/execStream/execStream.pb.go interpreter/src/execStream.pb.cc
+
+daemon/execStream/execStream.pb.go: execStream.proto
+	protoc -I=./ --go_out=./daemon execStream.proto
+
+interpreter/src/execStream.pb.cc: execStream.proto
+	protoc -I=./ --cpp_out=./interpreter/src execStream.proto
+
+test: protobufs
 	cd ./daemon && \
 	go test
+
+fmt:
+	go fmt ./daemon/*.go
+	cd ./interpreter && clang-format -i --style=file \
+		src/*.cpp src/*.hpp \
+		src/frontend/*.cpp src/frontend/*.hpp

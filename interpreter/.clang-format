@@ -6,9 +6,10 @@ AlignConsecutiveAssignments: true
 AlignConsecutiveDeclarations: true
 AlignEscapedNewlines: Right
 AlignTrailingComments: true
-AllowShortBlocksOnASingleLine: true
+AllowShortBlocksOnASingleLine: Empty
 AllowShortCaseLabelsOnASingleLine: true
 AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: Never
 BreakBeforeBraces: Attach
 ConstructorInitializerIndentWidth: 2
 ContinuationIndentWidth: 2

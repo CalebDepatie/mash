@@ -4,8 +4,8 @@
 
 #include <memory>
 #include <string>
-#include <vector>
 #include <variant>
+#include <vector>
 
 namespace parser {
 struct Node {
@@ -14,12 +14,12 @@ struct Node {
   virtual auto toString(int depth = 0, bool newline = true) -> std::string;
   Node();
   Node(std::shared_ptr<Node> child);
-  virtual ~Node() {};
+  virtual ~Node(){};
 };
 
 struct Value : Node {
   virtual auto toString(int depth, bool newline) -> std::string = 0;
-  virtual ~Value() {};
+  virtual ~Value(){};
 };
 
 struct Number : public Value {
@@ -56,6 +56,7 @@ struct NamedVal : public Value {
 
 struct Math : public Value {
   token::tkn_type operation;
+
   std::variant<std::shared_ptr<Number>, std::shared_ptr<NamedVal>, std::shared_ptr<Math>> left;
   std::variant<std::shared_ptr<Number>, std::shared_ptr<NamedVal>, std::shared_ptr<Math>> right;
 
@@ -63,7 +64,7 @@ struct Math : public Value {
 };
 
 struct Conditional : public Value {
-  token::tkn_type operation;
+  token::tkn_type        operation;
   std::shared_ptr<Value> left;
   std::shared_ptr<Value> right;
 
@@ -78,20 +79,21 @@ struct Scope : public Node {
 
 struct IfCond : public Node {
   std::shared_ptr<Conditional> cond;
-  std::shared_ptr<Scope> scope;
+  std::shared_ptr<Scope>       scope;
 
   auto toString(int depth, bool newline) -> std::string;
 };
 
 struct FnDef : public Node {
   std::vector<std::string> arg_names;
-  std::shared_ptr<Scope> scope;
+  std::shared_ptr<Scope>   scope;
 
   auto toString(int depth, bool newline) -> std::string;
 };
 
 struct FnCall : public Value {
   std::string iden;
+
   std::vector<std::variant<std::shared_ptr<Value>, std::shared_ptr<Scope>>> args;
 
   auto toString(int depth, bool newline) -> std::string;
@@ -99,13 +101,14 @@ struct FnCall : public Value {
 
 struct Asmt : public Node {
   std::string iden;
+
   std::variant<std::shared_ptr<Value>, std::shared_ptr<FnDef>> val;
 
   auto toString(int depth, bool newline) -> std::string;
 };
 
 struct Loop : public Node {
-  std::shared_ptr<Asmt> asmt;
+  std::shared_ptr<Asmt>  asmt;
   std::shared_ptr<Scope> scope;
 
   auto toString(int depth, bool newline) -> std::string;
@@ -117,4 +120,4 @@ struct Range : public Value {
 
   auto toString(int depth, bool newline) -> std::string;
 };
-}
+}  // namespace parser
