@@ -1,4 +1,6 @@
 # Build files
 interpreter/build/*
 daemon/mash
+daemon/mash_d
 *.pb.*
+deps/

@@ -1,9 +1,12 @@
-.PHONY: all mash test fmt protobufs
+.PHONY: all mash test fmt protobufs daemon/mash_d
 
-all: mash
+all: mash daemon/mash_d
 
 mash: protobufs
 	cd ./interpreter/build && ninja -j2
+
+daemon/mash_d:
+	cd ./daemon && go build -o mash_d
 
 protobufs: daemon/execStream/execStream.pb.go interpreter/src/execStream.pb.cc
 

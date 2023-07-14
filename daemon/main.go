@@ -3,8 +3,13 @@ package main
 import (
 	"fmt"
 	gc "github.com/CalebDepatie/go-common"
+	es "github.com/CalebDepatie/mash/execStream"
+	"google.golang.org/protobuf/proto"
+	"io"
 	"net"
 	"os"
+	sig "os/signal"
+	"syscall"
 )
 
 func main() {
@@ -16,6 +21,17 @@ func main() {
 		gc.LogFatal("Error Creating Socket:", err)
 	}
 
+	signalChan := make(chan os.Signal, 1)
+	sig.Notify(signalChan, os.Interrupt, syscall.SIGTERM)
+
+	// socket cleanup
+	go func() {
+		<-signalChan
+		cleanupSocketFile(socketFile)
+		os.Exit(0)
+	}()
+
+	defer cleanupSocketFile(socketFile)
 	defer listener.Close()
 
 	err = os.Chmod(socketFile, 0777)
@@ -35,10 +51,55 @@ func main() {
 	}
 }
 
+func cleanupSocketFile(path string) {
+	err := os.Remove(path)
+	if err != nil {
+		gc.LogFatal("Error Deleting Socket File:", err)
+	}
+}
+
 func handleConnection(conn net.Conn) {
 	defer conn.Close()
 
-	// Parse metadata
+	// parse data
+	buffer := make([]byte, 1024) // choose an appropriate buffer size
+	message := []byte{}
+	for {
+		bytesRead, err := conn.Read(buffer)
+		if err != nil {
+			if err != io.EOF {
+				gc.LogError("Failed to read incoming connection data:", err)
+			}
+			break
+		}
 
-	fmt.Println("Hello World")
+		message = append(message, buffer[:bytesRead]...)
+	}
+
+	program := &es.ExecStream{}
+	err := proto.Unmarshal(message, program)
+	if err != nil {
+		gc.LogError("Failed to parse execution stream:", err)
+		return
+	}
+
+	// execute
+	fmt.Println(program.CurrentWorkingDir)
+
+	// send response back home
+	res := &es.ExecResponse{
+		Result: "Ahoy Sailor!",
+	}
+
+	out, err := proto.Marshal(res)
+	if err != nil {
+		gc.LogError("Failed to encode response:", err)
+		return
+	}
+
+	_, err = conn.Write(out)
+	if err != nil {
+		gc.LogError("Failed to send response:", err)
+		return
+	}
 }

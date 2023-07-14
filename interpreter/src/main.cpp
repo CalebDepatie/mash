@@ -1,11 +1,14 @@
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/un.h>
+#include <sys/wait.h>
+#include <unistd.h>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <libsocket/exception.hpp>
+#include <libsocket/unixclientstream.hpp>
 #include <sstream>
-
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <unistd.h>
 
 #include "common.hpp"
 #include "frontend/ast.hpp"
@@ -59,7 +62,37 @@ auto main(int argc, char* argv[]) -> int {
     }
 
     // Send to daemon
-    // todo
+    std::string program;
+    if (!baked.SerializeToString(&program)) {
+      print_error("Could not serialize baked AST to binary");
+      return 1;
+    }
+
+    try {
+      libsocket::unix_stream_client sock("/var/run/mash.sock");
+      // I need to add a recognizable EOF for golang
+      sock.snd(program.data(), program.size());
+      sock.shutdown();  // indicate theres no more messages to send
+
+      // size is a guess...
+      const size_t s   = 256;
+      char*        ret = new char[s];
+      memset(ret, 0, s);
+
+      sock.rcv(ret, s - 1);
+
+      std::string return_string(ret);
+
+      ExecResponse return_data;
+
+      if (!return_data.ParseFromString(return_string)) {
+        print_error("Could not parse returned data");
+        return 1;
+      }
+
+      std::cout << "Response: " << return_data.result() << std::endl;
+
+    } catch (const libsocket::socket_exception& exc) { print_error(exc.mesg); }
 
   } else {
     print_error("Expected 1 file or none");

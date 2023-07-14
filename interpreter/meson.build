@@ -8,9 +8,12 @@ srcs = ['src/main.cpp', 'src/common.cpp', 'src/frontend/lexer.cpp',
 add_project_arguments(['-Wall'], language : 'cpp')
 add_project_link_arguments(['-lstdc++fs'], language : 'cpp')
 
+cpp = meson.get_compiler('cpp')
+
 depends = []
 
 depends += dependency('protobuf')
 depends += dependency('threads')
+depends += cpp.find_library('libsocket++')
 
 executable('mash', srcs, dependencies: depends)
