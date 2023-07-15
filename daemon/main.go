@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	gc "github.com/CalebDepatie/go-common"
 	es "github.com/CalebDepatie/mash/execStream"
 	"google.golang.org/protobuf/proto"
@@ -18,7 +17,8 @@ func main() {
 	// setup socket for listening
 	listener, err := net.Listen("unix", socketFile)
 	if err != nil {
-		gc.LogFatal("Error Creating Socket:", err)
+		gc.LogError("Error Creating Socket:", err)
+		return
 	}
 
 	signalChan := make(chan os.Signal, 1)
@@ -36,7 +36,8 @@ func main() {
 
 	err = os.Chmod(socketFile, 0777)
 	if err != nil {
-		gc.LogFatal("Error Setting Socket Perms:", err)
+		gc.LogError("Error Setting Socket Perms:", err)
+		return
 	}
 
 	// Run execution for connections
@@ -58,6 +59,7 @@ func cleanupSocketFile(path string) {
 	}
 }
 
+// todo: some abstractions here would probably be nice
 func handleConnection(conn net.Conn) {
 	defer conn.Close()
 
@@ -84,11 +86,64 @@ func handleConnection(conn net.Conn) {
 	}
 
 	// execute
-	fmt.Println(program.CurrentWorkingDir)
+	executor := NewExecutor(program.CurrentWorkingDir)
+	result := ""
+
+	for _, key := range program.GetExecKeys() {
+		switch key.Op {
+		case es.Operation_StringVal:
+			{
+				executor.PushVal(StringValue{key.GetStringValue()})
+			}
+		case es.Operation_NumberVal:
+			{
+				executor.PushVal(DoubleValue{key.GetNumberValue()})
+			}
+		case es.Operation_BoolVal:
+			{
+				executor.PushVal(BoolValue{key.GetBooleanValue()})
+			}
+		case es.Operation_RangeVal:
+			{
+				r := key.GetRangeValue()
+				executor.PushVal(RangeValue{[2]int32{r.From, r.To}})
+			}
+		case es.Operation_Recall:
+			{
+				executor.PushVal(IdenValue{key.GetStringValue()})
+			}
+
+		case es.Operation_ClearReg:
+			{
+				res_val := executor.Exec()
+				result += res_val.String() + "\n"
+			}
+		case es.Operation_ScopeStart:
+			{
+				executor.stack.NewLayer()
+			}
+		case es.Operation_ScopeEnd:
+			{
+				_ = executor.stack.PopLayer()
+			}
+		case es.Operation_Begin:
+			{
+				// todo
+			}
+
+		default:
+			{
+				executor.PushOp(Operation{
+					key.Op,
+					key.GetStringValue(),
+				})
+			}
+		}
+	}
 
 	// send response back home
 	res := &es.ExecResponse{
-		Result: "Ahoy Sailor!",
+		Result: result,
 	}
 
 	out, err := proto.Marshal(res)

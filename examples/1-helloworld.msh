@@ -1,8 +1,5 @@
 #!/usr/bin/mash
 # simplest example, showcasing how to run a hello world
 
-# I also wanted to use the variable, to showcase that all identifiers,
-# (keywords and selfdefined) are case-insensitive
-
 hello <- "Hello World!"
-run echo Hello
+run echo hello

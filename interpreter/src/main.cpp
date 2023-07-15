@@ -90,7 +90,12 @@ auto main(int argc, char* argv[]) -> int {
         return 1;
       }
 
-      std::cout << "Response: " << return_data.result() << std::endl;
+      if (!return_data.error().empty()) {
+        print_error(return_data.error());
+
+      } else if (!return_data.result().empty()) {
+        std::cout << return_data.result() << std::endl;
+      }
 
     } catch (const libsocket::socket_exception& exc) { print_error(exc.mesg); }
 

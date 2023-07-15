@@ -219,7 +219,7 @@ auto bakeFnCall(std::shared_ptr<parser::FnCall> node) -> std::vector<ExecKey> {
   auto cur_ops = std::vector<ExecKey>();
 
   ExecKey recall;
-  recall.set_op(Operation::Recall);
+  recall.set_op(Operation::FnCall);
   recall.set_stringvalue(node->iden);
   cur_ops.emplace_back(recall);
 

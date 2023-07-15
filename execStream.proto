@@ -20,6 +20,7 @@ enum Operation {
   RangeVal   = 13;
   Recall     = 14;
   ClearReg   = 15; // essentially an End Line
+  FnCall     = 16;
 }
 
 message ExecStream {

@@ -2,25 +2,25 @@ package main
 
 import "errors"
 
-type StackMap struct {
-	curMap    map[string]string // todo: using strings for everything will not be efficient
-	prevStack *StackMap
+type StackMap[T any] struct {
+	curMap    map[string]T
+	prevStack *StackMap[T]
 }
 
-func NewStackMap() StackMap {
-	new_stack := StackMap{
-		curMap:    make(map[string]string),
+func NewStackMap[T any]() StackMap[T] {
+	new_stack := StackMap[T]{
+		curMap:    make(map[string]T),
 		prevStack: nil,
 	}
 
 	return new_stack
 }
 
-func (s *StackMap) Set(key, val string) {
+func (s *StackMap[T]) Set(key string, val T) {
 	s.curMap[key] = val
 }
 
-func (s *StackMap) Get(key string) (string, error) {
+func (s *StackMap[T]) Get(key string) (T, error) {
 	val, ok := s.curMap[key]
 
 	if ok {
@@ -31,15 +31,16 @@ func (s *StackMap) Get(key string) (string, error) {
 		return s.prevStack.Get(key)
 	}
 
-	return "", errors.New("Key does not exist")
+	var def T
+	return def, errors.New("Key does not exist")
 }
 
-func (s *StackMap) NewLayer() {
-	new_stack := NewStackMap()
+func (s *StackMap[T]) NewLayer() {
+	new_stack := NewStackMap[T]()
 	new_stack.prevStack = s
 }
 
-func (s *StackMap) PopLayer() error {
+func (s *StackMap[T]) PopLayer() error {
 	if s.prevStack == nil {
 		return errors.New("No additional layer to pop")
 	}

@@ -3,7 +3,7 @@ package main
 import "testing"
 
 func TestSingleLevelMap(t *testing.T) {
-	stack := NewStackMap()
+	stack := NewStackMap[string]()
 
 	key, value := "test key", "test value"
 
@@ -12,12 +12,12 @@ func TestSingleLevelMap(t *testing.T) {
 	ret, _ := stack.Get(key)
 
 	if ret != value {
-		t.Errorf("Map returned inccorect value\nExpected: '%s', Recieved '%s'", value, ret)
+		t.Errorf("Map returned incorrect value\nExpected: '%s', Recieved '%s'", value, ret)
 	}
 }
 
 func TestBasicErrors(t *testing.T) {
-	stack := NewStackMap()
+	stack := NewStackMap[string]()
 
 	_, err := stack.Get("test")
 
@@ -33,7 +33,7 @@ func TestBasicErrors(t *testing.T) {
 }
 
 func TestMultiLevel(t *testing.T) {
-	stack := NewStackMap()
+	stack := NewStackMap[string]()
 
 	key, value := "test key", "test value"
 	stack.Set(key, value)
@@ -45,18 +45,18 @@ func TestMultiLevel(t *testing.T) {
 
 	ret, _ := stack.Get(key)
 	if ret != value {
-		t.Errorf("Map returned inccorect value\nExpected: '%s', Recieved '%s'", value, ret)
+		t.Errorf("Map returned incorrect value\nExpected: '%s', Recieved '%s'", value, ret)
 	}
 
 	ret, _ = stack.Get(key2)
 	if ret != value2 {
-		t.Errorf("Map returned inccorect value\nExpected: '%s', Recieved '%s'", value2, ret)
+		t.Errorf("Map returned incorrect value\nExpected: '%s', Recieved '%s'", value2, ret)
 	}
 
 	stack.PopLayer()
 
 	ret, _ = stack.Get(key)
 	if ret != value {
-		t.Errorf("Map returned inccorect value\nExpected: '%s', Recieved '%s'", value, ret)
+		t.Errorf("Map returned incorrect value\nExpected: '%s', Recieved '%s'", value, ret)
 	}
 }

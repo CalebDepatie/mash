@@ -1,91 +1,216 @@
 package main
 
 import (
+	gc "github.com/CalebDepatie/go-common"
+	es "github.com/CalebDepatie/mash/execStream"
 	"math"
+	"os"
+	"os/exec"
 )
 
-type Operation int
-
-const (
-	Add Operation = iota
-	Sub
-	Div
-	Mul
-	Mod
-	Pow
-)
+type Operation struct {
+	Op  es.Operation
+	Val string
+}
 
 // handles right to left execution for a task
 type Executor struct {
+	// cwd string
+	stack    StackMap[func(...Value) Value]
 	opQueue  Queue[Operation]
-	valQueue Queue[float64]
+	valQueue Queue[Value]
 }
 
-func NewExecutor() Executor {
-	return Executor{
+func NewExecutor(cwd string) Executor {
+	new_exec := Executor{
+		stack:    NewStackMap[func(...Value) Value](),
 		opQueue:  NewQueue[Operation](),
-		valQueue: NewQueue[float64](),
+		valQueue: NewQueue[Value](),
 	}
+
+	new_exec.stack.Set("run", func(args ...Value) Value {
+		shell, ok := os.LookupEnv("SHELL")
+		if !ok {
+			gc.LogError("Could not get environment variable $SHELL for execution")
+			return DoubleValue{0}
+		}
+
+		command := ""
+		for _, arg := range args {
+
+			command += " " + arg.String()
+		}
+
+		cmd := exec.Command(shell, "-c", command)
+		cmd.Dir = cwd
+
+		stdout, err := cmd.CombinedOutput()
+
+		out := string(stdout)
+
+		if err != nil {
+			out += "\n" + err.Error()
+		}
+
+		gc.LogInfo(command)
+
+		return StringValue{out}
+	})
+
+	new_exec.stack.Set("accept", func(args ...Value) Value {
+		return DoubleValue{0}
+	})
+
+	new_exec.stack.Set("notify", func(args ...Value) Value {
+		return DoubleValue{0}
+	})
+
+	new_exec.stack.Set("fork", func(args ...Value) Value {
+		return DoubleValue{0}
+	})
+
+	new_exec.stack.Set("join", func(args ...Value) Value {
+		return DoubleValue{0}
+	})
+
+	return new_exec
 }
 
 func (e *Executor) PushOp(op Operation) {
 	e.opQueue.PushBack(op)
 }
 
-func (e *Executor) PushVal(val float64) {
+func (e *Executor) PushVal(val Value) {
 	e.valQueue.PushBack(val)
 }
 
-func executeOp(op Operation, left, right float64) float64 {
+func executeMath(op string, left, right float64) Value {
 	var ret float64
 
 	switch op {
-	case Add:
+	case "+":
 		{
 			ret = left + right
 		}
-	case Sub:
+	case "-":
 		{
 			ret = left - right
 		}
-	case Mul:
+	case "*":
 		{
 			ret = left * right
 		}
-	case Div:
+	case "/":
 		{
 			ret = left / right
 		}
-	case Pow:
+	case "^":
 		{
 			ret = math.Pow(left, right)
 		}
-	case Mod:
+	case "%":
 		{
 			ret = math.Mod(left, right)
 		}
 	}
 
-	return ret
+	return DoubleValue{ret}
 }
 
-// todo: make execution safer
+func (e *Executor) recallIfPossible(val Value) Value {
+
+	if val.Type() != Iden {
+		return val
+	}
+
+	key := val.String()
+	determinedValue, err := e.stack.Get(key)
+
+	if err != nil {
+		gc.LogWarning("Attemped to access var that doesn't exist:", key)
+		return val
+	}
+
+	return determinedValue()
+}
+
+func valueWrap(val Value) func(...Value) Value {
+	return func(args ...Value) Value {
+		return val
+	}
+}
+
 // Will execute a full line
-func (e *Executor) Exec() float64 {
-	var ret float64
+func (e *Executor) Exec() Value {
+	var ret Value
+	ret_initialized := false
 
-	// run the first one seperate
-	op, _ := e.opQueue.PopFront()
-	left, _ := e.valQueue.PopFront()
-	right, _ := e.valQueue.PopFront()
+	// Check if this line will exec an FNCall
+	bottom := e.opQueue.PeekBottom()
+	switch bottom.Op {
+	case es.Operation_FnCall:
+		{
+			args := []Value{}
 
-	ret = executeOp(op, left, right)
+			for !e.valQueue.isEmpty() {
+				val, _ := e.valQueue.PopFront()
+				args = append(args, e.recallIfPossible(val))
+			}
 
-	for e.opQueue.Length() != 0 {
-		op, _ = e.opQueue.PopFront()
-		left, _ = e.valQueue.PopFront()
+			fn, err := e.stack.Get(bottom.Val)
 
-		ret = executeOp(op, ret, left)
+			if err != nil {
+				return DoubleValue{0}
+			}
+
+			return fn(args...)
+		}
+	}
+
+	// todo : abstract out generic execution
+	for !e.opQueue.isEmpty() {
+		op, _ := e.opQueue.PopFront()
+
+		switch op.Op {
+		case es.Operation_Math:
+			{
+				var (
+					left, right Value
+				)
+
+				if ret_initialized {
+					left = ret
+					right, _ = e.valQueue.PopFront()
+
+				} else {
+					left, _ = e.valQueue.PopFront()
+					right, _ = e.valQueue.PopFront()
+					ret_initialized = true
+				}
+
+				left = e.recallIfPossible(left)
+				right = e.recallIfPossible(right)
+
+				ret = executeMath(op.Val, left.Double(), right.Double())
+			}
+		case es.Operation_Asmt:
+			{
+				if !ret_initialized {
+					ret, _ = e.valQueue.PopFront()
+
+					ret_initialized = true
+				}
+
+				e.stack.Set(op.Val, valueWrap(ret))
+			}
+
+		default:
+			{
+				gc.LogInfo("skipped", op.Op)
+				ret = DoubleValue{0}
+			}
+
+		}
 	}
 
 	return ret
