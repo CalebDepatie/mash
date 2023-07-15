@@ -6,7 +6,8 @@ type ValueType int
 
 const (
 	String ValueType = iota
-	Iden
+  Iden
+  Nil
 	Double
 	Bool
 	Range
@@ -18,6 +19,31 @@ type Value interface {
 	Double() float64
 	Bool() bool
 	Range() [2]int32
+}
+
+// --- NilValue ---
+// provides a stand in for "nothing"
+
+type NilValue struct {}
+
+func (v NilValue) Type() ValueType {
+	return Nil
+}
+
+func (v NilValue) String() string {
+	return "nil"
+}
+
+func (v NilValue) Double() float64 {
+	return 0
+}
+
+func (v NilValue) Bool() bool {
+	return false
+}
+
+func (v NilValue) Range() [2]int32 {
+	return [2]int32{0, 0}
 }
 
 // --- StringValue ---
