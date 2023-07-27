@@ -6,8 +6,8 @@ type ValueType int
 
 const (
 	String ValueType = iota
-  Iden
-  Nil
+	Iden
+	Nil
 	Double
 	Bool
 	Range
@@ -24,7 +24,7 @@ type Value interface {
 // --- NilValue ---
 // provides a stand in for "nothing"
 
-type NilValue struct {}
+type NilValue struct{}
 
 func (v NilValue) Type() ValueType {
 	return Nil

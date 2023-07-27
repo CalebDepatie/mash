@@ -6,7 +6,7 @@ import (
 )
 
 func TestExecutorMath(t *testing.T) {
-	executor := NewExecutor()
+	executor := NewExecutor("~/")
 
 	// operations come in op left (right, value or nested math)
 	// |-> 10 / 5
@@ -14,7 +14,7 @@ func TestExecutorMath(t *testing.T) {
 	executor.PushVal(DoubleValue{10})
 	executor.PushVal(DoubleValue{5})
 
-	ret := executor.Exec()
+	ret := executor.ExecLine()
 	if ret.Double() != 2 {
 		t.Errorf("Error executing math. Expected %d, Recieved: %f", 2, ret.Double())
 	}
@@ -29,7 +29,7 @@ func TestExecutorMath(t *testing.T) {
 	executor.PushVal(DoubleValue{5})
 	executor.PushVal(DoubleValue{3})
 
-	ret = executor.Exec()
+	ret = executor.ExecLine()
 	if ret.Double() != 0 {
 		t.Errorf("Error executing math. Expected %d, Recieved: %f", 0, ret.Double())
 	}

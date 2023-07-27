@@ -52,6 +52,10 @@ func (q Queue[T]) isEmpty() bool {
 	}
 }
 
+func (q Queue[T]) Index() int {
+	return q.cur_start
+}
+
 func (q *Queue[T]) Clear() {
 	q.array = make([]T, 0)
 	q.cur_start = 0

@@ -114,7 +114,6 @@ func handleConnection(conn net.Conn) {
 
 	// execute
 	executor := NewExecutor(program.CurrentWorkingDir)
-	result := ""
 
 	for _, key := range program.GetExecKeys() {
 		switch key.Op {
@@ -142,20 +141,28 @@ func handleConnection(conn net.Conn) {
 
 		case es.Operation_ClearReg:
 			{
-				res_val := executor.Exec()
-				result += res_val.String() + "\n"
+				executor.AddLineEnd()
 			}
-		case es.Operation_ScopeStart:
-			{
-				executor.stack.NewLayer()
-			}
-		case es.Operation_ScopeEnd:
-			{
-				_ = executor.stack.PopLayer()
-			}
+
+		// case es.Operation_ClearReg:
+		// 	{
+		// 		res_val := executor.Exec()
+		// 		result += res_val.String() + "\n"
+		// 	}
+		// case es.Operation_ScopeStart:
+		// 	{
+		// 		executor.stack.NewLayer()
+		// 		// executor.PushOp(Operation{)
+		// 	}
+		// case es.Operation_ScopeEnd:
+		// 	{
+		// 		_ = executor.stack.PopLayer()
+		// 	}
 		case es.Operation_Begin:
 			{
-				// todo
+				// Will be used to indicate when a continuous stream of operations
+				// is being sent rather than a full file
+				// REPL vs Script eval
 			}
 
 		default:
