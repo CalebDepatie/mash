@@ -2,7 +2,7 @@ package main
 
 import "testing"
 
-func TestQueueInsert(t *testing.T) {
+func TestQueue_Insert(t *testing.T) {
 	value := "test!"
 
 	q := NewQueue[string]()
@@ -16,7 +16,7 @@ func TestQueueInsert(t *testing.T) {
 	}
 }
 
-func TestEmptyError(t *testing.T) {
+func TestQueue_EmptyError(t *testing.T) {
 	q := NewQueue[string]()
 
 	_, err := q.PopFront()
@@ -26,7 +26,7 @@ func TestEmptyError(t *testing.T) {
 	}
 }
 
-func TestLen(t *testing.T) {
+func TestQueue_Len(t *testing.T) {
 	value := "test!"
 
 	q := NewQueue[string]()
