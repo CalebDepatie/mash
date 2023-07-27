@@ -63,6 +63,33 @@ func cleanupSocketFile(path string) {
 func handleConnection(conn net.Conn) {
 	defer conn.Close()
 
+	message_home := func(res, err_res string) {
+		response := &es.ExecResponse{
+			Result: res,
+			Error:  err_res,
+		}
+
+		out, err := proto.Marshal(response)
+		if err != nil {
+			gc.LogError("Failed to encode response:", err)
+			return
+		}
+
+		_, err = conn.Write(out)
+		if err != nil {
+			gc.LogError("Failed to send response:", err)
+			return
+		}
+	}
+
+	// gracefully handle a runtime error
+	defer func() {
+		if r := recover(); r != nil {
+			gc.LogError("Daemon Error:", r)
+			message_home("", r.(error).Error())
+		}
+	}()
+
 	// parse data
 	buffer := make([]byte, 1024) // choose an appropriate buffer size
 	message := []byte{}
@@ -142,19 +169,5 @@ func handleConnection(conn net.Conn) {
 	}
 
 	// send response back home
-	res := &es.ExecResponse{
-		Result: result,
-	}
-
-	out, err := proto.Marshal(res)
-	if err != nil {
-		gc.LogError("Failed to encode response:", err)
-		return
-	}
-
-	_, err = conn.Write(out)
-	if err != nil {
-		gc.LogError("Failed to send response:", err)
-		return
-	}
+	message_home(executor.Exec(), "")
 }
