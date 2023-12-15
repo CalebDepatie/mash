@@ -1,4 +1,4 @@
-package main
+package runtime
 
 type Stack[T any] struct {
 	items []T

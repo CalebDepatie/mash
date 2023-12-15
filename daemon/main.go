@@ -1,14 +1,15 @@
 package main
 
 import (
-	gc "github.com/CalebDepatie/go-common"
-	es "github.com/CalebDepatie/mash/execStream"
-	"google.golang.org/protobuf/proto"
 	"io"
 	"net"
 	"os"
 	sig "os/signal"
 	"syscall"
+
+	gc "github.com/CalebDepatie/go-common"
+	es "github.com/CalebDepatie/mash/execStream"
+	"google.golang.org/protobuf/proto"
 )
 
 func main() {
@@ -59,7 +60,6 @@ func cleanupSocketFile(path string) {
 	}
 }
 
-// todo: some abstractions here would probably be nice
 func handleConnection(conn net.Conn) {
 	defer conn.Close()
 
@@ -112,69 +112,10 @@ func handleConnection(conn net.Conn) {
 		return
 	}
 
+	// setup runtime and the mbyr stream to be a bit more useful
+
 	// execute
-	executor := NewExecutor(program.CurrentWorkingDir)
-
-	for _, key := range program.GetExecKeys() {
-		switch key.Op {
-		case es.Operation_StringVal:
-			{
-				executor.PushVal(StringValue{key.GetStringValue()})
-			}
-		case es.Operation_NumberVal:
-			{
-				executor.PushVal(DoubleValue{key.GetNumberValue()})
-			}
-		case es.Operation_BoolVal:
-			{
-				executor.PushVal(BoolValue{key.GetBooleanValue()})
-			}
-		case es.Operation_RangeVal:
-			{
-				r := key.GetRangeValue()
-				executor.PushVal(RangeValue{[2]int32{r.From, r.To}})
-			}
-		case es.Operation_Recall:
-			{
-				executor.PushVal(IdenValue{key.GetStringValue()})
-			}
-
-		case es.Operation_ClearReg:
-			{
-				executor.AddLineEnd()
-			}
-
-		// case es.Operation_ClearReg:
-		// 	{
-		// 		res_val := executor.Exec()
-		// 		result += res_val.String() + "\n"
-		// 	}
-		// case es.Operation_ScopeStart:
-		// 	{
-		// 		executor.stack.NewLayer()
-		// 		// executor.PushOp(Operation{)
-		// 	}
-		// case es.Operation_ScopeEnd:
-		// 	{
-		// 		_ = executor.stack.PopLayer()
-		// 	}
-		case es.Operation_Begin:
-			{
-				// Will be used to indicate when a continuous stream of operations
-				// is being sent rather than a full file
-				// REPL vs Script eval
-			}
-
-		default:
-			{
-				executor.PushOp(Operation{
-					key.Op,
-					key.GetStringValue(),
-				})
-			}
-		}
-	}
 
 	// send response back home
-	message_home(executor.Exec(), "")
+	message_home("", "NYI")
 }

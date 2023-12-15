@@ -1,4 +1,4 @@
-package main
+package runtime
 
 import "strconv"
 
@@ -49,7 +49,7 @@ func (v NilValue) Range() [2]int32 {
 // --- StringValue ---
 
 type StringValue struct {
-	val string
+	Val string
 }
 
 func (v StringValue) Type() ValueType {
@@ -57,7 +57,7 @@ func (v StringValue) Type() ValueType {
 }
 
 func (v StringValue) String() string {
-	return v.val
+	return v.Val
 }
 
 func (v StringValue) Double() float64 {
@@ -75,7 +75,7 @@ func (v StringValue) Range() [2]int32 {
 // --- IdenValue ---
 
 type IdenValue struct {
-	val string
+	Val string
 }
 
 func (v IdenValue) Type() ValueType {
@@ -83,7 +83,7 @@ func (v IdenValue) Type() ValueType {
 }
 
 func (v IdenValue) String() string {
-	return v.val
+	return v.Val
 }
 
 func (v IdenValue) Double() float64 {
@@ -101,7 +101,7 @@ func (v IdenValue) Range() [2]int32 {
 // --- DoubleValue ---
 
 type DoubleValue struct {
-	val float64
+	Val float64
 }
 
 func (v DoubleValue) Type() ValueType {
@@ -109,11 +109,11 @@ func (v DoubleValue) Type() ValueType {
 }
 
 func (v DoubleValue) String() string {
-	return strconv.FormatFloat(v.val, 'f', -1, 64)
+	return strconv.FormatFloat(v.Val, 'f', -1, 64)
 }
 
 func (v DoubleValue) Double() float64 {
-	return v.val
+	return v.Val
 }
 
 func (v DoubleValue) Bool() bool {
@@ -127,7 +127,7 @@ func (v DoubleValue) Range() [2]int32 {
 // --- BoolValue ---
 
 type BoolValue struct {
-	val bool
+	Val bool
 }
 
 func (v BoolValue) Type() ValueType {
@@ -135,7 +135,7 @@ func (v BoolValue) Type() ValueType {
 }
 
 func (v BoolValue) String() string {
-	return strconv.FormatBool(v.val)
+	return strconv.FormatBool(v.Val)
 }
 
 func (v BoolValue) Double() float64 {
@@ -143,7 +143,7 @@ func (v BoolValue) Double() float64 {
 }
 
 func (v BoolValue) Bool() bool {
-	return v.val
+	return v.Val
 }
 
 func (v BoolValue) Range() [2]int32 {
@@ -153,7 +153,7 @@ func (v BoolValue) Range() [2]int32 {
 // --- RangeValue ---
 
 type RangeValue struct {
-	val [2]int32
+	Val [2]int32
 }
 
 func (v RangeValue) Type() ValueType {
@@ -161,7 +161,7 @@ func (v RangeValue) Type() ValueType {
 }
 
 func (v RangeValue) String() string {
-	return strconv.Itoa(int(v.val[0])) + ":" + strconv.Itoa(int(v.val[1]))
+	return strconv.Itoa(int(v.Val[0])) + ":" + strconv.Itoa(int(v.Val[1]))
 }
 
 func (v RangeValue) Double() float64 {
@@ -173,5 +173,5 @@ func (v RangeValue) Bool() bool {
 }
 
 func (v RangeValue) Range() [2]int32 {
-	return v.val
+	return v.Val
 }

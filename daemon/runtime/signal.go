@@ -1,8 +1,9 @@
-package main
+package runtime
 
 import (
-	gc "github.com/CalebDepatie/go-common"
 	"sync"
+
+	gc "github.com/CalebDepatie/go-common"
 )
 
 type signal struct {

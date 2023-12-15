@@ -1,8 +1,9 @@
-package main
+package runtime
 
 import (
-	es "github.com/CalebDepatie/mash/execStream"
 	"testing"
+
+	es "github.com/CalebDepatie/mash/execStream"
 )
 
 func TestExecutorMath(t *testing.T) {

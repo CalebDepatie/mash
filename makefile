@@ -16,9 +16,14 @@ daemon/execStream/execStream.pb.go: execStream.proto
 interpreter/src/execStream.pb.cc: execStream.proto
 	protoc -I=./ --cpp_out=./interpreter/src execStream.proto
 
+define run_test
+	@echo "\n*** Running tests: $(1) ***"
+	-cd $(1) && go test
+endef
+
 test: protobufs
-	cd ./daemon && \
-	go test
+	$(call run_test,./daemon/)
+	$(call run_test,./daemon/runtime)
 
 fmt:
 	go fmt ./daemon/*.go

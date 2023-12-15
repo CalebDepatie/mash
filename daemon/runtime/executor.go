@@ -1,4 +1,4 @@
-package main
+package runtime
 
 import (
 	gc "github.com/CalebDepatie/go-common"
@@ -20,7 +20,6 @@ type Executor struct {
 	opQueue   Queue[Operation]
 	valQueue  Queue[Value]
 	lines     Queue[[2]int]
-	skipScope bool
 	// loopStack Stack[int]
 }
 
@@ -29,7 +28,7 @@ func NewExecutor(cwd string) Executor {
 		stack:     NewStackMap[func(...Value) Value](),
 		opQueue:   NewQueue[Operation](),
 		valQueue:  NewQueue[Value](),
-		skipScope: false,
+		lines:     NewQueue[[2]int](),
 		// loopStack: NewStack[int](),
 	}
 
@@ -323,11 +322,10 @@ func (e *Executor) ExecLine() Value {
 			right = e.recallIfPossible(right)
 
 			cond := executeCond(op.Val, left, right)
+			_ = cond
 
 			// handle scope
-			if !cond.Bool() {
-				return NilValue{}
-			}
+
 		}
 	}
 
