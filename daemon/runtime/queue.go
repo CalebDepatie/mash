@@ -44,7 +44,7 @@ func (q Queue[T]) Remaining() []T {
 	return q.array[q.cur_start:len(q.array)]
 }
 
-func (q Queue[T]) isEmpty() bool {
+func (q Queue[T]) IsEmpty() bool {
 	if len(q.array) == q.cur_start {
 		return true
 	} else {

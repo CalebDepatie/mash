@@ -112,9 +112,7 @@ func handleConnection(conn net.Conn) {
 		return
 	}
 
-	// setup runtime and the mbyr stream to be a bit more useful
-
-	// execute
+	// exec := run.NewExecutor(program)
 
 	// send response back home
 	message_home("", "NYI")

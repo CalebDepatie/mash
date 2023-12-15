@@ -1,8 +1,9 @@
-package runtime
+package main
 
 import (
 	gc "github.com/CalebDepatie/go-common"
 	es "github.com/CalebDepatie/mash/execStream"
+	run "github.com/CalebDepatie/mash/runtime"
 	"math"
 	"os"
 	"os/exec"
@@ -16,27 +17,31 @@ type Operation struct {
 // handles right to left execution for a task
 type Executor struct {
 	// cwd string
-	stack     StackMap[func(...Value) Value]
-	opQueue   Queue[Operation]
-	valQueue  Queue[Value]
-	lines     Queue[[2]int]
-	// loopStack Stack[int]
+	stack     run.StackMap[func(...run.Value) run.Value]
+	opQueue   run.Queue[Operation]
+	valQueue  run.Queue[run.Value]
+	lines     run.Queue[[2]int]
+	blockStack run.Stack[int]
+	script    []Action
+	scriptPos int
 }
 
-func NewExecutor(cwd string) Executor {
+func NewExecutor(cwd string, cmd_ops []Action) Executor {
 	new_exec := Executor{
-		stack:     NewStackMap[func(...Value) Value](),
-		opQueue:   NewQueue[Operation](),
-		valQueue:  NewQueue[Value](),
-		lines:     NewQueue[[2]int](),
-		// loopStack: NewStack[int](),
+		stack:     run.NewStackMap[func(...run.Value) run.Value](),
+		opQueue:   run.NewQueue[Operation](),
+		valQueue:  run.NewQueue[run.Value](),
+		lines:     run.NewQueue[[2]int](),
+		blockStack: run.NewStack[int](),
+		script:   cmd_ops,
+		scriptPos: 0,
 	}
 
-	new_exec.stack.Set("run", func(args ...Value) Value {
+	new_exec.stack.Set("run", func(args ...run.Value) run.Value {
 		shell, ok := os.LookupEnv("SHELL")
 		if !ok {
 			gc.LogError("Could not get environment variable $SHELL for execution")
-			return NilValue{}
+			return run.NilValue{}
 		}
 
 		command := ""
@@ -56,23 +61,23 @@ func NewExecutor(cwd string) Executor {
 			out += "\n" + err.Error()
 		}
 
-		return StringValue{out}
+		return run.StringValue{out}
 	})
 
-	new_exec.stack.Set("accept", func(args ...Value) Value {
-		return NilValue{}
+	new_exec.stack.Set("accept", func(args ...run.Value) run.Value {
+		return run.NilValue{}
 	})
 
-	new_exec.stack.Set("notify", func(args ...Value) Value {
-		return NilValue{}
+	new_exec.stack.Set("notify", func(args ...run.Value) run.Value {
+		return run.NilValue{}
 	})
 
-	new_exec.stack.Set("fork", func(args ...Value) Value {
-		return NilValue{}
+	new_exec.stack.Set("fork", func(args ...run.Value) run.Value {
+		return run.NilValue{}
 	})
 
-	new_exec.stack.Set("join", func(args ...Value) Value {
-		return NilValue{}
+	new_exec.stack.Set("join", func(args ...run.Value) run.Value {
+		return run.NilValue{}
 	})
 
 	return new_exec
@@ -85,7 +90,7 @@ func (e *Executor) AddLineEnd() {
 
 // determines if its at the end of a line in the (opQueue and valQueue)
 func (e *Executor) IsEnd() (bool, bool) {
-	if e.lines.isEmpty() {
+	if e.lines.IsEmpty() {
 		return true, true
 	}
 
@@ -99,11 +104,11 @@ func (e *Executor) PushOp(op Operation) {
 	e.opQueue.PushBack(op)
 }
 
-func (e *Executor) PushVal(val Value) {
+func (e *Executor) PushVal(val run.Value) {
 	e.valQueue.PushBack(val)
 }
 
-func executeMath(op string, left, right float64) DoubleValue {
+func executeMath(op string, left, right float64) run.DoubleValue {
 	var ret float64
 
 	switch op {
@@ -133,36 +138,36 @@ func executeMath(op string, left, right float64) DoubleValue {
 		}
 	}
 
-	return DoubleValue{ret}
+	return run.DoubleValue{ret}
 }
 
-func executeCond(op string, left, right Value) Value {
+func executeCond(op string, left, right run.Value) run.Value {
 	var eval bool
 
-	if left.Type() != right.Type() || left.Type() == Nil {
-		return NilValue{} // for now, lets only check conditionals on the same primitives
+	if left.Type() != right.Type() || left.Type() == run.Nil {
+		return run.NilValue{} // for now, lets only check conditionals on the same primitives
 	}
 
 	switch op {
 	case "<":
 		{
 			switch left := left.(type) {
-			case DoubleValue:
+			case run.DoubleValue:
 				eval = left.Double() < right.Double()
-			case StringValue:
+			case run.StringValue:
 				eval = left.String() < right.String()
-			case RangeValue:
+			case run.RangeValue:
 				eval = left.Range()[1]-left.Range()[0] < right.Range()[1]-right.Range()[0]
 			}
 		}
 	case "<=":
 		{
 			switch left := left.(type) {
-			case DoubleValue:
+			case run.DoubleValue:
 				eval = left.Double() <= right.Double()
-			case StringValue:
+			case run.StringValue:
 				eval = left.String() <= right.String()
-			case RangeValue:
+			case run.RangeValue:
 				eval = left.Range()[1]-left.Range()[0] <= right.Range()[1]-right.Range()[0]
 			}
 
@@ -170,37 +175,37 @@ func executeCond(op string, left, right Value) Value {
 	case "==":
 		{
 			switch left := left.(type) {
-			case BoolValue:
+			case run.BoolValue:
 				eval = left.Bool() == right.Bool()
-			case DoubleValue:
+			case run.DoubleValue:
 				eval = left.Double() == right.Double()
-			case StringValue:
+			case run.StringValue:
 				eval = left.String() == right.String()
-			case RangeValue:
+			case run.RangeValue:
 				eval = left.Range()[1] == right.Range()[1] && left.Range()[0] == right.Range()[0]
 			}
 		}
 	case "!=":
 		{
 			switch left := left.(type) {
-			case BoolValue:
+			case run.BoolValue:
 				eval = left.Bool() != right.Bool()
-			case DoubleValue:
+			case run.DoubleValue:
 				eval = left.Double() != right.Double()
-			case StringValue:
+			case run.StringValue:
 				eval = left.String() != right.String()
-			case RangeValue:
+			case run.RangeValue:
 				eval = left.Range()[1] != right.Range()[1] || left.Range()[0] != right.Range()[0]
 			}
 		}
 	case ">=":
 		{
 			switch left := left.(type) {
-			case DoubleValue:
+			case run.DoubleValue:
 				eval = left.Double() >= right.Double()
-			case StringValue:
+			case run.StringValue:
 				eval = left.String() >= right.String()
-			case RangeValue:
+			case run.RangeValue:
 				eval = left.Range()[1]-left.Range()[0] >= right.Range()[1]-right.Range()[0]
 			}
 
@@ -208,21 +213,21 @@ func executeCond(op string, left, right Value) Value {
 	case ">":
 		{
 			switch left := left.(type) {
-			case DoubleValue:
+			case run.DoubleValue:
 				eval = left.Double() > right.Double()
-			case StringValue:
+			case run.StringValue:
 				eval = left.String() > right.String()
-			case RangeValue:
+			case run.RangeValue:
 				eval = left.Range()[1]-left.Range()[0] > right.Range()[1]-right.Range()[0]
 			}
 		}
 	}
 
-	return BoolValue{eval}
+	return run.BoolValue{eval}
 }
 
-func (e *Executor) recallIfPossible(val Value) Value {
-	if val.Type() != Iden {
+func (e *Executor) recallIfPossible(val run.Value) run.Value {
+	if val.Type() != run.Iden {
 		return val
 	}
 
@@ -237,8 +242,8 @@ func (e *Executor) recallIfPossible(val Value) Value {
 	return determinedValue()
 }
 
-func valueWrap(val Value) func(...Value) Value {
-	return func(args ...Value) Value {
+func valueWrap(val run.Value) func(...run.Value) run.Value {
+	return func(args ...run.Value) run.Value {
 		return val
 	}
 }
@@ -247,7 +252,7 @@ func valueWrap(val Value) func(...Value) Value {
 func (e *Executor) Exec() string {
 	result := ""
 
-	for !e.opQueue.isEmpty() && !e.lines.isEmpty() {
+	for !e.opQueue.IsEmpty() && !e.lines.IsEmpty() {
 
 		// Check for ops that won't clear a line
 		bottom := e.opQueue.PeekBottom()
@@ -263,7 +268,7 @@ func (e *Executor) Exec() string {
 		} else {
 			result += e.ExecLine().String() + "\n"
 
-			if !e.lines.isEmpty() {
+			if !e.lines.IsEmpty() {
 				e.lines.PopFront()
 			}
 		}
@@ -273,10 +278,10 @@ func (e *Executor) Exec() string {
 }
 
 // Will execute a full line
-func (e *Executor) ExecLine() Value {
-	if e.opQueue.isEmpty() {
+func (e *Executor) ExecLine() run.Value {
+	if e.opQueue.IsEmpty() {
 		gc.LogError("Called Exec with an empty op queue")
-		return NilValue{}
+		return run.NilValue{}
 	}
 
 	// Checks for special case beginnings before executing the line
@@ -284,13 +289,14 @@ func (e *Executor) ExecLine() Value {
 
 	bottom := e.opQueue.PeekBottom()
 	gc.LogInfo("bottom", bottom.Op)
+	
 	switch bottom.Op {
 	case es.Operation_FnCall:
 		{
-			args := []Value{}
+			args := []run.Value{}
 
 			_, valEnd := e.IsEnd()
-			for !e.valQueue.isEmpty() && !valEnd {
+			for !e.valQueue.IsEmpty() && !valEnd {
 				val, _ := e.valQueue.PopFront()
 				args = append(args, e.recallIfPossible(val))
 
@@ -300,7 +306,7 @@ func (e *Executor) ExecLine() Value {
 			fn, err := e.stack.Get(bottom.Val)
 
 			if err != nil {
-				return NilValue{}
+				return run.NilValue{}
 			}
 
 			return fn(args...)
@@ -315,7 +321,7 @@ func (e *Executor) ExecLine() Value {
 			right, _ := e.valQueue.PopFront()
 
 			if op.Op != es.Operation_Cond {
-				return NilValue{}
+				return run.NilValue{}
 			}
 
 			left = e.recallIfPossible(left)
@@ -334,19 +340,19 @@ func (e *Executor) ExecLine() Value {
 	return ret
 }
 
-func execValueOp(e *Executor) Value {
-	var ret Value
+func execValueOp(e *Executor) run.Value {
+	var ret run.Value
 	ret_initialized := false
 
 	opEnd, valEnd := e.IsEnd()
-	for !e.opQueue.isEmpty() && !(opEnd && valEnd) {
+	for !e.opQueue.IsEmpty() && !(opEnd && valEnd) {
 		op, _ := e.opQueue.PopFront()
 
 		switch op.Op {
 		case es.Operation_Math:
 			{
 				var (
-					left, right Value
+					left, right run.Value
 				)
 
 				if ret_initialized {
@@ -379,7 +385,7 @@ func execValueOp(e *Executor) Value {
 		default:
 			{
 				gc.LogInfo("skipped", op.Op)
-				ret = NilValue{}
+				ret = run.NilValue{}
 			}
 
 		}

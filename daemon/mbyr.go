@@ -11,41 +11,66 @@ import (
 type ActionType int
 
 const (
-	If ActionType = iota
-	Loop
-	Value
-	Op
+	OperationAction ActionType = iota
+	ValueAction
 )
 
-type Action interface {
-	GetActionType() ActionType
+// struct to 'simplify'...
+type Action struct {
+	Type ActionType
+	Val  run.Value
+	Op   Operation
 }
 
-func ConvertCodes(codes *es.ExecStream) []run.Value {
+func (a Action) GetType() ActionType {
+	return a.Type
+}
 
-	var values []run.Value
+func (a Action) GetValue() run.Value {
+	return a.Val
+}
+
+func (a Action) GetOperation() Operation {
+	return a.Op
+}
+
+func ConvertCodes(codes *es.ExecStream) []Action {
+
+	var actions []Action
 
 	for _, code := range codes.ExecKeys {
 		switch code.Op {
 		case es.Operation_StringVal:
 			{
-				values = append(values, run.StringValue{code.GetStringValue()})
+				new_action := Action{ValueAction, run.StringValue{code.GetStringValue()}, Operation{}}
+				actions = append(actions, new_action)
 			}
 		case es.Operation_BoolVal:
 			{
-				values = append(values, run.BoolValue{code.GetBooleanValue()})
+				new_action := Action{ValueAction, run.BoolValue{code.GetBooleanValue()}, Operation{}}
+				actions = append(actions, new_action)
 			}
 		case es.Operation_NumberVal:
 			{
-				values = append(values, run.DoubleValue{code.GetNumberValue()})
+				new_action := Action{ValueAction, run.DoubleValue{code.GetNumberValue()}, Operation{}}
+				actions = append(actions, new_action)
 			}
 		case es.Operation_RangeVal:
 			{
 				r := code.GetRangeValue()
-				values = append(values, run.RangeValue{[2]int32{r.From, r.To}})
+				new_action := Action{ValueAction, run.RangeValue{[2]int32{r.From, r.To}}, Operation{}}
+				actions = append(actions, new_action)
+			}
+
+		default:
+			{
+				contentStr := code.GetStringValue()
+				new_action := Action{OperationAction, run.NilValue{}, Operation{code.Op, contentStr}}
+
+				actions = append(actions, new_action)
 			}
 		}
 	}
 
-	return values
+	return actions
 }
