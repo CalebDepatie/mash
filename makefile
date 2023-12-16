@@ -16,14 +16,18 @@ daemon/execStream/execStream.pb.go: execStream.proto
 interpreter/src/execStream.pb.cc: execStream.proto
 	protoc -I=./ --cpp_out=./interpreter/src execStream.proto
 
-define run_test
-	@echo "\n*** Running tests: $(1) ***"
-	-cd $(1) && go test
-endef
+# Specific to gnu make
+# define run_test
+# 	@echo "\n*** Running tests: $(1) ***"
+# 	-cd $(1) && go test
+# endef
 
 test: protobufs
-	$(call run_test,./daemon/)
-	$(call run_test,./daemon/runtime)
+	@echo "\n*** Running tests: ./daemon/ ***"
+	-cd ./daemon/ && go test
+
+	@echo "\n\n*** Running tests: ./daemon/runtime ***"
+	-cd ./daemon/runtime && go test
 
 fmt:
 	go fmt ./daemon/*.go

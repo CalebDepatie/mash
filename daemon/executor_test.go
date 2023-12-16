@@ -16,11 +16,12 @@ func TestExecutorMath(t *testing.T) {
 		{OperationAction, run.NilValue{}, Operation{es.Operation_Math, "/"}},
 		{ValueAction, run.DoubleValue{10}, Operation{}},
 		{ValueAction, run.DoubleValue{5}, Operation{}},
+		{OperationAction, run.NilValue{}, Operation{es.Operation_ClearReg, ""}},
 	}
 
 	executor := NewExecutor("~/", actions)
 
-	ret := executor.ExecLine()
+	ret := executor.StartExecution()
 	if ret.Double() != 2 {
 		t.Errorf("Error executing math. Expected %d, Recieved: %f", 2, ret.Double())
 	}
@@ -35,11 +36,12 @@ func TestExecutorMath(t *testing.T) {
 		{OperationAction, run.NilValue{}, Operation{es.Operation_Math, "%"}},
 		{ValueAction, run.DoubleValue{5}, Operation{}},
 		{ValueAction, run.DoubleValue{3}, Operation{}},
+		{OperationAction, run.NilValue{}, Operation{es.Operation_ClearReg, ""}},
 	}
 
 	executor = NewExecutor("~/", actions)
 
-	ret = executor.ExecLine()
+	ret = executor.StartExecution()
 	if ret.Double() != 0 {
 		t.Errorf("Error executing math. Expected %d, Recieved: %f", 0, ret.Double())
 	}

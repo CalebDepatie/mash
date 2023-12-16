@@ -248,104 +248,61 @@ func valueWrap(val run.Value) func(...run.Value) run.Value {
 	}
 }
 
-// handles full execution. Will return the whole script result at once
-func (e *Executor) Exec() string {
-	result := ""
-
-	for !e.opQueue.IsEmpty() && !e.lines.IsEmpty() {
-
-		// Check for ops that won't clear a line
-		bottom := e.opQueue.PeekBottom()
-
-		if bottom.Op == es.Operation_ScopeStart {
-			e.stack.NewLayer()
-			e.opQueue.PopFront()
-
-		} else if bottom.Op == es.Operation_ScopeEnd {
-			_ = e.stack.PopLayer()
-			e.opQueue.PopFront()
-
-		} else {
-			result += e.ExecLine().String() + "\n"
-
-			if !e.lines.IsEmpty() {
-				e.lines.PopFront()
-			}
-		}
-	}
-
-	return result
-}
-
-// Will execute a full line
-func (e *Executor) ExecLine() run.Value {
-	if e.opQueue.IsEmpty() {
-		gc.LogError("Called Exec with an empty op queue")
+func (e *Executor) StartExecution() run.Value {
+	if len(e.script) == 0 {
+		gc.LogError("Called StartExecution with an empty script")
 		return run.NilValue{}
 	}
 
-	// Checks for special case beginnings before executing the line
-	// todo: remove this whole special case mess
+	var ret run.Value = run.NilValue{}
 
-	bottom := e.opQueue.PeekBottom()
-	gc.LogInfo("bottom", bottom.Op)
-	
-	switch bottom.Op {
-	case es.Operation_FnCall:
-		{
-			args := []run.Value{}
+	for e.scriptPos < len(e.script) {
+		action := e.script[e.scriptPos]
 
-			_, valEnd := e.IsEnd()
-			for !e.valQueue.IsEmpty() && !valEnd {
-				val, _ := e.valQueue.PopFront()
-				args = append(args, e.recallIfPossible(val))
+		switch action.GetType() {
+		case OperationAction:
+			{
+				operation := action.GetOperation()
 
-				_, valEnd = e.IsEnd()
+				switch operation.Op {
+				case es.Operation_ClearReg:
+					{
+						ret = e.execOp()
+					}
+				case es.Operation_ScopeEnd:
+					{
+						_ = e.stack.PopLayer()
+						e.blockStack.Pop()
+					}
+				case es.Operation_ScopeStart:
+					{
+						e.stack.NewLayer()
+						e.blockStack.Push(e.scriptPos)
+					}
+					fallthrough
+				default:
+					{
+						e.PushOp(operation)
+					}
+				}				
 			}
-
-			fn, err := e.stack.Get(bottom.Val)
-
-			if err != nil {
-				return run.NilValue{}
+		case ValueAction:
+			{
+				e.PushVal(action.GetValue())
 			}
-
-			return fn(args...)
 		}
 
-	case es.Operation_If:
-		{
-			e.opQueue.PopFront() // pop If key
-
-			op, _ := e.opQueue.PopFront()
-			left, _ := e.valQueue.PopFront()
-			right, _ := e.valQueue.PopFront()
-
-			if op.Op != es.Operation_Cond {
-				return run.NilValue{}
-			}
-
-			left = e.recallIfPossible(left)
-			right = e.recallIfPossible(right)
-
-			cond := executeCond(op.Val, left, right)
-			_ = cond
-
-			// handle scope
-
-		}
+		e.scriptPos++
 	}
-
-	ret := execValueOp(e)
 
 	return ret
 }
 
-func execValueOp(e *Executor) run.Value {
-	var ret run.Value
-	ret_initialized := false
+func (e *Executor) execOp() run.Value {
 
-	opEnd, valEnd := e.IsEnd()
-	for !e.opQueue.IsEmpty() && !(opEnd && valEnd) {
+	var ret run.Value = run.NilValue{}
+
+	for !e.opQueue.IsEmpty() {
 		op, _ := e.opQueue.PopFront()
 
 		switch op.Op {
@@ -355,28 +312,27 @@ func execValueOp(e *Executor) run.Value {
 					left, right run.Value
 				)
 
-				if ret_initialized {
-					left = ret
+				if ret.Type() == run.Nil {
+					left, _ = e.valQueue.PopFront()
 					right, _ = e.valQueue.PopFront()
 
 				} else {
-					left, _ = e.valQueue.PopFront()
+					left = ret
 					right, _ = e.valQueue.PopFront()
-					ret_initialized = true
 				}
 
 				left = e.recallIfPossible(left)
 				right = e.recallIfPossible(right)
 
 				ret = executeMath(op.Val, left.Double(), right.Double())
+
+				gc.LogInfo("Math Op", left, op.Val, right, ret)
 			}
 
 		case es.Operation_Asmt:
 			{
-				if !ret_initialized {
+				if ret.Type() == run.Nil {
 					ret, _ = e.valQueue.PopFront()
-
-					ret_initialized = true
 				}
 
 				e.stack.Set(op.Val, valueWrap(ret))
@@ -384,13 +340,11 @@ func execValueOp(e *Executor) run.Value {
 
 		default:
 			{
-				gc.LogInfo("skipped", op.Op)
+				gc.LogWarning("Token unevaluated", op.Op)
 				ret = run.NilValue{}
 			}
 
 		}
-
-		opEnd, valEnd = e.IsEnd()
 	}
 
 	return ret

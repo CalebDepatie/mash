@@ -1,8 +1,8 @@
-# MASH - Management and Automation SHell
+# MASH
 
-This shell was motivated by a desire to have a language that has high level and simple task control, but also the simplicity and OS level access of a shell.
-This is not a traditional shell, as the execution is processed on a daemon that handles the tasking.
-The interactive shell parses the input or file and sends an execution stream to the local daemon for processing, which evaluates and returns the result of each line.
+This script was motivated by a desire to have a language that has high level and simple task control, but also the simplicity and OS level access of a shell.
+This is not a shell, as the execution is processed on a daemon that handles the tasking.
+The interactive REPL parses the input or file and sends an execution stream to the local daemon for processing, which evaluates and returns the result of each line.
 
 This simplifies the most important feature for me, system global signalling for very simple user scheduling of a task.
 It also enables the simplification of some other interesting features, like sharing signals between networked machines.

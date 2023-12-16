@@ -2,6 +2,8 @@ package runtime
 
 import "testing"
 
+// ERROR: I'm occassionally getting concurrent map writess
+
 func TestOneSignal(t *testing.T) {
 	go func() {
 		ret := Accept("test")
