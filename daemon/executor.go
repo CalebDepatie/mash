@@ -20,7 +20,6 @@ type Executor struct {
 	stack     run.StackMap[func(...run.Value) run.Value]
 	opQueue   run.Queue[Operation]
 	valQueue  run.Queue[run.Value]
-	lines     run.Queue[[2]int]
 	blockStack run.Stack[int]
 	script    []Action
 	scriptPos int
@@ -31,7 +30,6 @@ func NewExecutor(cwd string, cmd_ops []Action) Executor {
 		stack:     run.NewStackMap[func(...run.Value) run.Value](),
 		opQueue:   run.NewQueue[Operation](),
 		valQueue:  run.NewQueue[run.Value](),
-		lines:     run.NewQueue[[2]int](),
 		blockStack: run.NewStack[int](),
 		script:   cmd_ops,
 		scriptPos: 0,
@@ -81,23 +79,6 @@ func NewExecutor(cwd string, cmd_ops []Action) Executor {
 	})
 
 	return new_exec
-}
-
-func (e *Executor) AddLineEnd() {
-
-	e.lines.PushBack([2]int{e.opQueue.Length(), e.valQueue.Length()})
-}
-
-// determines if its at the end of a line in the (opQueue and valQueue)
-func (e *Executor) IsEnd() (bool, bool) {
-	if e.lines.IsEmpty() {
-		return true, true
-	}
-
-	bottom := e.lines.PeekBottom()
-	opEnd, valEnd := bottom[0], bottom[1]
-
-	return e.opQueue.Index() == opEnd, e.valQueue.Index() == valEnd
 }
 
 func (e *Executor) PushOp(op Operation) {
@@ -336,6 +317,13 @@ func (e *Executor) execOp() run.Value {
 				}
 
 				e.stack.Set(op.Val, valueWrap(ret))
+			}
+
+		case es.Operation_Recall:
+			{
+				// NOTE: Assuming this is just a wrapped value
+				value_func, _ := e.stack.Get(op.Val)
+				ret = value_func()
 			}
 
 		default:
