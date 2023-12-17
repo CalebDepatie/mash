@@ -1,0 +1,5 @@
+initial <- 1
+next <- initial * 5
+final <- next ^ 5
+
+final

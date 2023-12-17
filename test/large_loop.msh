@@ -1,0 +1,9 @@
+# this is more of a bench mark than a test
+# Just trying to keep a pulse on the execution speed
+
+for index <- 1 .. 10000 {
+    math <- 5 ^ 33 / 3
+}
+
+tmp <- 0
+tmp
