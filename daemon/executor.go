@@ -23,6 +23,7 @@ type Executor struct {
 	valQueue   run.Queue[run.Value]
 	blockStack run.Stack[int]
 	skipExec   bool
+	loopExec   bool
 	script     []Action
 	scriptPos  int
 }
@@ -34,6 +35,7 @@ func NewExecutor(cwd string, cmd_ops []Action) Executor {
 		valQueue:   run.NewQueue[run.Value](),
 		blockStack: run.NewStack[int](),
 		skipExec:   false,
+		loopExec:   false,
 		script:     cmd_ops,
 		scriptPos:  0,
 	}
@@ -264,18 +266,29 @@ func (e *Executor) StartExecution() run.Value {
 				case es.Operation_ClearReg:
 					{
 						ret = e.execOp()
+						gc.LogInfo("SPECIAL ClearReg")
 					}
 				case es.Operation_ScopeEnd:
 					{
 						_ = e.stack.PopLayer()
 						e.blockStack.Pop()
+
+						if e.loopExec {
+							e.scriptPos = e.blockStack.Pop() - 1
+
+							gc.LogInfo("SPECIAL Looped to", e.scriptPos+1)
+						}
+
+						gc.LogInfo("SPECIAL ScopeEnd")
 					}
 				case es.Operation_ScopeStart:
 					{
 						e.stack.NewLayer()
 						e.blockStack.Push(e.scriptPos)
+
+						gc.LogInfo("SPECIAL ScopeStart")
 					}
-					fallthrough
+					// fallthrough
 				default:
 					{
 						e.PushOp(operation)
@@ -327,6 +340,10 @@ func (e *Executor) execOp() run.Value {
 
 		case es.Operation_Asmt:
 			{
+				// this is called BEFORE execution that would set to ret
+				if ret.Type() == run.Nil {
+					ret = e.execOp() // parse the next op
+				}
 				if ret.Type() == run.Nil {
 					ret, _ = e.valQueue.PopFront()
 				}
@@ -334,15 +351,6 @@ func (e *Executor) execOp() run.Value {
 				e.stack.Set(op.Val, valueWrap(ret))
 
 				gc.LogInfo("Asmt Op", op.Val, ret)
-			}
-
-		case es.Operation_Recall:
-			{
-				// NOTE: Assuming this is just a wrapped value
-				value_func, _ := e.stack.Get(op.Val)
-				ret = value_func()
-
-				gc.LogInfo("Recall Op", op.Val, ret)
 			}
 
 		case es.Operation_If:
@@ -382,16 +390,63 @@ func (e *Executor) execOp() run.Value {
 
 		case es.Operation_Loop:
 			{
-				gc.LogInfo("Loop Op", op.Val)
+				// asmt of range -> scope
+				op_asmt, _ := e.opQueue.PopFront()
+				if op_asmt.Op != es.Operation_Asmt {
+					gc.LogError("Loop operation must be followed by an assignment")
+					return run.NilValue{}
+				}
+
+				for_range, _ := e.valQueue.PopFront()
+				if for_range.Type() != run.Range {
+					gc.LogError("Loop assignment must be a range")
+					return run.NilValue{}
+				}
+
+				loop_index := e.recallIfPossible(run.IdenValue{op_asmt.Val})
+
+				if int32(loop_index.Double()) > for_range.Range()[1] {
+					e.skipExec = true
+					e.loopExec = false
+
+				} else {
+					new_loop_index := loop_index.Double() + 1
+					e.stack.Set(op_asmt.Val, valueWrap(run.DoubleValue{new_loop_index}))
+
+					e.loopExec = true
+					e.skipExec = false
+
+					// get the loop op start
+					for i := e.scriptPos; i >= 0; i-- {
+						if e.script[i].GetType() == OperationAction {
+							if e.script[i].GetOperation().Op == es.Operation_Loop {
+								e.blockStack.Push(i)
+								break
+							}
+						}
+					}
+				}
+
+				gc.LogInfo("Loop Op", op.Val, loop_index, for_range)
 			}
 
 		default:
 			{
 				gc.LogWarning("Token unevaluated", op.Op)
 				ret = run.NilValue{}
+
+				if !e.valQueue.IsEmpty() {
+					val, _ := e.valQueue.PopFront()
+					ret = e.recallIfPossible(val)
+				}
 			}
 
 		}
+	}
+
+	if !e.valQueue.IsEmpty() {
+		val, _ := e.valQueue.PopFront()
+		ret = e.recallIfPossible(val)
 	}
 
 	return ret
