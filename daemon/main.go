@@ -24,6 +24,7 @@ func main() {
 
 	signalChan := make(chan os.Signal, 1)
 	sig.Notify(signalChan, os.Interrupt, syscall.SIGTERM)
+	sig.Notify(signalChan, os.Interrupt, syscall.SIGINT)
 
 	// socket cleanup
 	go func() {
@@ -112,8 +113,10 @@ func handleConnection(conn net.Conn) {
 		return
 	}
 
-	// exec := run.NewExecutor(program)
+	mbyr_codes := ConvertCodes(program)
+	executor := NewExecutor(program.CurrentWorkingDir, mbyr_codes)
+	ret := executor.StartExecution()
 
 	// send response back home
-	message_home("", "NYI")
+	message_home(ret.String(), "")
 }

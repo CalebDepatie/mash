@@ -7,9 +7,9 @@ if val < 3 {
     run echo "Correct"
 }
 
-for i <- 1 .. 3 {
-   run echo i
-}
+#for i <- 1 .. 3 {
+#   run echo i
+#}
 
 # new_func <- fn ( param ) {
 #  return param + 1

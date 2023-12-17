@@ -265,8 +265,13 @@ func (e *Executor) StartExecution() run.Value {
 				switch operation.Op {
 				case es.Operation_ClearReg:
 					{
-						ret = e.execOp()
-						gc.LogInfo("SPECIAL ClearReg")
+						line_ret := e.execOp()
+
+						if line_ret.Type() != run.Nil {
+							ret = line_ret
+						}
+
+						gc.LogInfo("SPECIAL ClearReg", line_ret.String())
 					}
 				case es.Operation_ScopeEnd:
 					{
@@ -428,6 +433,23 @@ func (e *Executor) execOp() run.Value {
 				}
 
 				gc.LogInfo("Loop Op", op.Val, loop_index, for_range)
+			}
+
+		case es.Operation_FnCall:
+			{
+				// NOTE: currently assuming args will be values
+				args := []run.Value{}
+
+				for !e.valQueue.IsEmpty() {
+					val, _ := e.valQueue.PopFront()
+					args = append(args, val)
+				}
+
+				fn, _ := e.stack.Get(op.Val)
+
+				ret = fn(args...)
+
+				gc.LogInfo("FnCall Op", op.Val, ret)
 			}
 
 		default:

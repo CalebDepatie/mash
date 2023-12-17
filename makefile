@@ -1,4 +1,4 @@
-.PHONY: all mash test fmt protobufs daemon/mash_d
+.PHONY: all mash test fmt protobufs daemon/mash_d test-go
 
 all: mash daemon/mash_d
 
@@ -17,17 +17,19 @@ interpreter/src/execStream.pb.cc: execStream.proto
 	protoc -I=./ --cpp_out=./interpreter/src execStream.proto
 
 # Specific to gnu make
-# define run_test
-# 	@echo "\n*** Running tests: $(1) ***"
-# 	-cd $(1) && go test
-# endef
+define run_go_test
+	@echo "\n*** Running tests: $(1) ***"
+	-@cd $(1) && go test
+endef
 
-test: protobufs
-	@echo "\n*** Running tests: ./daemon/ ***"
-	-cd ./daemon/ && go test
+test: mash daemon/mash_d test-go
+	@echo "\n*** Running integration tests ***"
+	@./test/test_helper.sh
 
-	@echo "\n\n*** Running tests: ./daemon/runtime ***"
-	-cd ./daemon/runtime && go test
+
+test-go: protobufs
+	$(call run_go_test, ./daemon/)
+	$(call run_go_test, ./daemon/runtime)
 
 fmt:
 	go fmt ./daemon/*.go

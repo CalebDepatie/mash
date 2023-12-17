@@ -35,6 +35,7 @@ func (a Action) GetOperation() Operation {
 }
 
 func ConvertCodes(codes *es.ExecStream) []Action {
+	// TODO: Convert recall to iden
 
 	var actions []Action
 

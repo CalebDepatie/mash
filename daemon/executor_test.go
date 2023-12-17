@@ -52,7 +52,7 @@ func TestExecutorAsmt(t *testing.T) {
 		{OperationAction, run.NilValue{}, Operation{es.Operation_Asmt, "test"}},
 		{ValueAction, run.DoubleValue{5}, Operation{}},
 		{OperationAction, run.NilValue{}, Operation{es.Operation_ClearReg, ""}},
-		{OperationAction, run.NilValue{}, Operation{es.Operation_Recall, "test"}},
+		{ValueAction, run.IdenValue{"test"}, Operation{}},
 		{OperationAction, run.NilValue{}, Operation{es.Operation_ClearReg, ""}},
 	}
 
@@ -61,7 +61,30 @@ func TestExecutorAsmt(t *testing.T) {
 	ret := executor.StartExecution()
 
 	if ret.Double() != 5 {
-		t.Errorf("Error executing asmt. Expected %d, Recieved: %f", 5, ret.Double())
+		t.Errorf("Error executing asmt. Expected %d, Recieved: %f", 10, ret.Double())
+	}
+}
+
+func TestExecutorAsmtMath(t *testing.T) {
+	actions := []Action{
+		{OperationAction, run.NilValue{}, Operation{es.Operation_Asmt, "test"}},
+		{ValueAction, run.DoubleValue{5}, Operation{}},
+		{OperationAction, run.NilValue{}, Operation{es.Operation_ClearReg, ""}},
+		{OperationAction, run.NilValue{}, Operation{es.Operation_Asmt, "test"}},
+		{OperationAction, run.NilValue{}, Operation{es.Operation_Math, "+"}},
+		{ValueAction, run.IdenValue{"test"}, Operation{}},
+		{ValueAction, run.IdenValue{"test"}, Operation{}},
+		{OperationAction, run.NilValue{}, Operation{es.Operation_ClearReg, ""}},
+		{ValueAction, run.IdenValue{"test"}, Operation{}},
+		{OperationAction, run.NilValue{}, Operation{es.Operation_ClearReg, ""}},
+	}
+
+	executor := NewExecutor("~/", actions)
+
+	ret := executor.StartExecution()
+
+	if ret.Double() != 10 {
+		t.Errorf("Error executing asmt math. Expected %d, Recieved: %f", 10, ret.Double())
 	}
 }
 
@@ -104,7 +127,7 @@ func TestExecutorIf(t *testing.T) {
 		{OperationAction, run.NilValue{}, Operation{es.Operation_ScopeEnd, ""}},
 		{OperationAction, run.NilValue{}, Operation{es.Operation_ClearReg, ""}},
 
-		{OperationAction, run.NilValue{}, Operation{es.Operation_Recall, "test"}},
+		{ValueAction, run.IdenValue{"test"}, Operation{}},
 		{OperationAction, run.NilValue{}, Operation{es.Operation_ClearReg, ""}},
 	}
 
@@ -114,5 +137,41 @@ func TestExecutorIf(t *testing.T) {
 
 	if ret.Double() != 4 {
 		t.Errorf("Error executing if. Expected %d, Recieved: %f", 4, ret.Double())
+	}
+}
+
+func TestExecutorLoop(t *testing.T) {
+	actions := []Action{
+		{OperationAction, run.NilValue{}, Operation{es.Operation_Asmt, "test"}},
+		{ValueAction, run.DoubleValue{0}, Operation{}},
+		{OperationAction, run.NilValue{}, Operation{es.Operation_ClearReg, ""}},
+
+		{OperationAction, run.NilValue{}, Operation{es.Operation_Loop, ""}},
+		{OperationAction, run.NilValue{}, Operation{es.Operation_Asmt, "i"}},
+		{ValueAction, run.RangeValue{[2]int32{1, 3}}, Operation{}},
+		{OperationAction, run.NilValue{}, Operation{es.Operation_ClearReg, ""}},
+
+		{OperationAction, run.NilValue{}, Operation{es.Operation_ScopeStart, ""}},
+		{OperationAction, run.NilValue{}, Operation{es.Operation_ClearReg, ""}},
+
+		{OperationAction, run.NilValue{}, Operation{es.Operation_Asmt, "test"}},
+		{ValueAction, run.IdenValue{"test"}, Operation{}},
+		{OperationAction, run.NilValue{}, Operation{es.Operation_Math, "+"}},
+		{ValueAction, run.IdenValue{"i"}, Operation{}},
+		{OperationAction, run.NilValue{}, Operation{es.Operation_ClearReg, ""}},
+
+		{OperationAction, run.NilValue{}, Operation{es.Operation_ScopeEnd, ""}},
+		{OperationAction, run.NilValue{}, Operation{es.Operation_ClearReg, ""}},
+
+		{ValueAction, run.IdenValue{"test"}, Operation{}},
+		{OperationAction, run.NilValue{}, Operation{es.Operation_ClearReg, ""}},
+	}
+
+	executor := NewExecutor("~/", actions)
+
+	ret := executor.StartExecution()
+
+	if ret.Double() != 10 {
+		t.Errorf("Error executing loop. Expected %d, Recieved: %f", 10, ret.Double())
 	}
 }
