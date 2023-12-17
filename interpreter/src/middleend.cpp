@@ -66,6 +66,10 @@ auto bakeScope(std::shared_ptr<parser::Scope> node) -> std::vector<ExecKey> {
   scope_start.set_op(Operation::ScopeStart);
   cur_ops.emplace_back(scope_start);
 
+  ExecKey clear_reg;
+  clear_reg.set_op(Operation::ClearReg);
+  cur_ops.emplace_back(clear_reg);
+
   std::shared_ptr<parser::Node> cur_node = node->line_top;
   for (;;) {
     if (!cur_node)  // exit the loop if theres no more nodes
@@ -84,8 +88,6 @@ auto bakeScope(std::shared_ptr<parser::Scope> node) -> std::vector<ExecKey> {
       cur_ops = concat(cur_ops, bakeLoop(loop));
     }
 
-    ExecKey clear_reg;
-    clear_reg.set_op(Operation::ClearReg);
     cur_ops.emplace_back(clear_reg);
 
     cur_node = cur_node->next;
@@ -94,6 +96,7 @@ auto bakeScope(std::shared_ptr<parser::Scope> node) -> std::vector<ExecKey> {
   ExecKey scope_end;
   scope_end.set_op(Operation::ScopeEnd);
   cur_ops.emplace_back(scope_end);
+  cur_ops.emplace_back(clear_reg);
 
   return cur_ops;
 }

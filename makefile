@@ -3,7 +3,7 @@
 all: mash daemon/mash_d
 
 mash: protobufs
-	cd ./interpreter/build && ninja -j2
+	cd ./interpreter/build-pi && ninja -j1
 
 daemon/mash_d:
 	cd ./daemon && go build -o mash_d
