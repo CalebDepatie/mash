@@ -206,9 +206,10 @@ auto bakeLoop(std::shared_ptr<parser::Loop> node) -> std::vector<ExecKey> {
   loop.set_op(Operation::Loop);
   cur_ops.emplace_back(loop);
 
-  cur_ops = concat(cur_ops, bakeAsmt(node->asmt));
+  auto asmt_ops = bakeAsmt(node->asmt);
 
-  // for consistency. May be unessecary
+  cur_ops = concat(cur_ops, asmt_ops);
+
   ExecKey clear_reg;
   clear_reg.set_op(Operation::ClearReg);
   cur_ops.emplace_back(clear_reg);
@@ -275,11 +276,11 @@ auto bakeValue(std::shared_ptr<parser::Value> node) -> std::vector<ExecKey> {
     ExecKey range_key;
     range_key.set_op(Operation::RangeVal);
 
-    Range r;
-    r.set_from(range->from->val);
-    r.set_to(range->to->val);
-    range_key.set_allocated_rangevalue(&r);
+    Range* r = new Range();
+    r->set_from(range->from->val);
+    r->set_to(range->to->val);
 
+    range_key.set_allocated_rangevalue(r);
     cur_ops.emplace_back(range_key);
 
   } else if (auto fncall = std::dynamic_pointer_cast<parser::FnCall>(node)) {
