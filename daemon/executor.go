@@ -1,12 +1,13 @@
 package main
 
 import (
-	gc "github.com/CalebDepatie/go-common"
-	es "github.com/CalebDepatie/mash/execStream"
-	run "github.com/CalebDepatie/mash/runtime"
 	"math"
 	"os"
 	"os/exec"
+
+	gc "github.com/CalebDepatie/go-common"
+	es "github.com/CalebDepatie/mash/execStream"
+	run "github.com/CalebDepatie/mash/runtime"
 )
 
 type Operation struct {
@@ -17,22 +18,24 @@ type Operation struct {
 // handles right to left execution for a task
 type Executor struct {
 	// cwd string
-	stack     run.StackMap[func(...run.Value) run.Value]
-	opQueue   run.Queue[Operation]
-	valQueue  run.Queue[run.Value]
+	stack      run.StackMap[func(...run.Value) run.Value]
+	opQueue    run.Queue[Operation]
+	valQueue   run.Queue[run.Value]
 	blockStack run.Stack[int]
-	script    []Action
-	scriptPos int
+	skipExec   bool
+	script     []Action
+	scriptPos  int
 }
 
 func NewExecutor(cwd string, cmd_ops []Action) Executor {
 	new_exec := Executor{
-		stack:     run.NewStackMap[func(...run.Value) run.Value](),
-		opQueue:   run.NewQueue[Operation](),
-		valQueue:  run.NewQueue[run.Value](),
+		stack:      run.NewStackMap[func(...run.Value) run.Value](),
+		opQueue:    run.NewQueue[Operation](),
+		valQueue:   run.NewQueue[run.Value](),
 		blockStack: run.NewStack[int](),
-		script:   cmd_ops,
-		scriptPos: 0,
+		skipExec:   false,
+		script:     cmd_ops,
+		scriptPos:  0,
 	}
 
 	new_exec.stack.Set("run", func(args ...run.Value) run.Value {
@@ -231,7 +234,7 @@ func valueWrap(val run.Value) func(...run.Value) run.Value {
 
 func (e *Executor) StartExecution() run.Value {
 	if len(e.script) == 0 {
-		gc.LogError("Called StartExecution with an empty script")
+		gc.LogWarning("Called StartExecution with an empty script")
 		return run.NilValue{}
 	}
 
@@ -239,6 +242,18 @@ func (e *Executor) StartExecution() run.Value {
 
 	for e.scriptPos < len(e.script) {
 		action := e.script[e.scriptPos]
+
+		if e.skipExec && action.GetType() == OperationAction {
+			operation := action.GetOperation()
+			if operation.Op == es.Operation_ScopeEnd {
+				e.skipExec = false
+			}
+		}
+
+		if e.skipExec {
+			e.scriptPos++
+			continue // can this be a break?
+		}
 
 		switch action.GetType() {
 		case OperationAction:
@@ -265,7 +280,7 @@ func (e *Executor) StartExecution() run.Value {
 					{
 						e.PushOp(operation)
 					}
-				}				
+				}
 			}
 		case ValueAction:
 			{
@@ -317,6 +332,8 @@ func (e *Executor) execOp() run.Value {
 				}
 
 				e.stack.Set(op.Val, valueWrap(ret))
+
+				gc.LogInfo("Asmt Op", op.Val, ret)
 			}
 
 		case es.Operation_Recall:
@@ -324,6 +341,48 @@ func (e *Executor) execOp() run.Value {
 				// NOTE: Assuming this is just a wrapped value
 				value_func, _ := e.stack.Get(op.Val)
 				ret = value_func()
+
+				gc.LogInfo("Recall Op", op.Val, ret)
+			}
+
+		case es.Operation_If:
+			{
+				// I now know there will be a COND then a BLOCK that may or may not be skipped
+
+				ret = e.execOp()
+
+				e.skipExec = !ret.Bool()
+
+				gc.LogInfo("If Op", op.Val, ret)
+			}
+
+		case es.Operation_Cond:
+			{
+
+				var (
+					left, right run.Value
+				)
+
+				if ret.Type() == run.Nil {
+					left, _ = e.valQueue.PopFront()
+					right, _ = e.valQueue.PopFront()
+
+				} else {
+					left = ret
+					right, _ = e.valQueue.PopFront()
+				}
+
+				left = e.recallIfPossible(left)
+				right = e.recallIfPossible(right)
+
+				ret = executeCond(op.Val, left, right)
+
+				gc.LogInfo("Cond Op", left, op.Val, right, ret)
+			}
+
+		case es.Operation_Loop:
+			{
+				gc.LogInfo("Loop Op", op.Val)
 			}
 
 		default:
