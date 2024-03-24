@@ -4,3 +4,4 @@ daemon/mash
 daemon/mash_d
 *.pb.*
 deps/
+thirdparty/

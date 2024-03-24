@@ -6,7 +6,7 @@ srcs = ['src/main.cpp', 'src/common.cpp', 'src/frontend/lexer.cpp',
         'src/execStream.pb.cc']
 
 add_project_arguments(['-Wall'], language : 'cpp')
-add_project_link_arguments(['-lstdc++fs', '-L/usr/local/lib'], language : 'cpp')
+add_project_link_arguments(['-lstdc++fs'], language : 'cpp')
 
 cpp = meson.get_compiler('cpp')
 

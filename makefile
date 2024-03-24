@@ -3,10 +3,10 @@
 all: mash daemon/mash_d
 
 mash: protobufs
-	cd ./interpreter/build-pi && ninja -j1
+	cd ./interpreter/build && ninja -j1
 
 daemon/mash_d:
-	cd ./daemon && go build -o mash_d
+	cd ./daemon && go build -buildvcs=false -o mash_d
 
 protobufs: daemon/execStream/execStream.pb.go interpreter/src/execStream.pb.cc
 
@@ -24,7 +24,7 @@ endef
 
 test: mash daemon/mash_d test-go
 	@echo "\n*** Running integration tests ***"
-	@./test/test_helper.sh
+	@./scripts/test_helper.sh
 
 
 test-go: protobufs
@@ -36,3 +36,7 @@ fmt:
 	cd ./interpreter && clang-format -i --style=file \
 		src/*.cpp src/*.hpp \
 		src/frontend/*.cpp src/frontend/*.hpp
+
+clean:
+	-rm daemon/execStream/execStream.pb.go
+	-rm interpreter/src/execStream.pb.*

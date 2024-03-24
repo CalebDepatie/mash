@@ -1,12 +1,9 @@
 #!/usr/bin/bash
 
-extension=".msh"
-dir="./test"
-daemon="./daemon/mash_d"
-interp="./interpreter/build-pi/mash"
+# Run and evaluate integration tests in ./test
+# provides little debug information
 
-daemon_prog=$(basename $daemon)
-files=$(find "$dir" -name "*$extension" -type f)
+source ./scripts/script_core.sh
 
 # start up the daemon
 sudo $daemon > /dev/null 2>&1 &
@@ -28,8 +25,8 @@ for file in $files; do
 
     if [ "$test_expected" != "$test_actual" ]; then
         echo "[ FAIL ] $file took $execution_time ms"
-        echo "[ FAIL ] $file expected: $test_expected"
-        echo "[ FAIL ] $file actual: $test_actual"
+        echo "         $file expected: $test_expected"
+        echo "         $file actual: $test_actual"
     else
         echo "[ OK   ] $file took $execution_time ms"
     fi
