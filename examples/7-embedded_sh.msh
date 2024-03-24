@@ -1,0 +1,36 @@
+#!/usr/bin/mash
+
+# !! unfinished syntax not incorperated into the language !!
+
+# The idea of this is to be able to embedded languages like bash, which can be run from a file
+# with a shebang, directly into mash scripts. This would give very powerful scripting
+# capabilities without needing to make mash's syntax and control flow complex.
+
+# using a hello world, here are a few possible examples of how this could work:
+
+hello <- "hello world!"
+
+# "hello" is exported as a variable into the bash environment before the users code is ran
+# this doesnt allow for a string format like syntax but does make it easier for this
+# run block to be transferabble to arbitrary languages
+run bash [ hello ] {
+    echo $hello
+}
+
+# in this situation, we export hello to bash using a different, explicitely set variable name
+# this helps where you might otherwise have some clobbering
+run bash [ hello -> hello_bash ] {
+    echo $hello_bash
+}
+
+# I wanted to show here that the same syntax could theoretically be used for any language
+run python [ hello ] {
+    print(hello)
+}
+
+# if these are user defineable, how are they defined?
+# here, the string specifies how the code is run on the command line, and the
+# code block is showing how variables should be imported into the language
+python <- runnable "python" [ value -> name ] {
+    name = value
+}
