@@ -17,6 +17,20 @@ func NewStackMap[T any]() StackMap[T] {
 }
 
 func (s *StackMap[T]) Set(key string, val T) {
+
+	// if the key exists, update the value in the appropriate layer
+	check := s.prevStack
+	for check != nil {
+		_, ok := s.curMap[key]
+
+		if !ok {
+			check.curMap[key] = val
+		}
+
+		check = check.prevStack
+	}
+
+	// TODO: this makes initializing a variable slower than it needs to be
 	s.curMap[key] = val
 }
 

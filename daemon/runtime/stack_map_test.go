@@ -53,6 +53,10 @@ func TestMultiLevel(t *testing.T) {
 		t.Errorf("Map returned incorrect value\nExpected: '%s', Recieved '%s'", value2, ret)
 	}
 
+	// ensuring setting a key that already exists is propagated down the layers
+	key, value = "test key", "test value changed"
+	stack.Set(key, value)
+
 	stack.PopLayer()
 
 	ret, _ = stack.Get(key)

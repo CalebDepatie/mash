@@ -1,9 +1,11 @@
 initial <- 0
 
-for index <- 1 .. 10 {
-    if index % 2 == 0 {
-        initial <= initial 1
-    }
+if 1 == 1 {
+    initial <- 5
+}
+
+for idx <- 1 .. 5 {
+    initial <- initial + 1
 }
 
 initial

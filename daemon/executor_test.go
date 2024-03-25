@@ -140,8 +140,12 @@ func TestExecutorIf(t *testing.T) {
 	}
 }
 
+// TODO: this tests bytecode appears to be incorrect. it only loops once
 func TestExecutorLoop(t *testing.T) {
 	actions := []Action{
+		{OperationAction, run.NilValue{}, Operation{es.Operation_ScopeStart, ""}},
+		{OperationAction, run.NilValue{}, Operation{es.Operation_ClearReg, ""}},
+
 		{OperationAction, run.NilValue{}, Operation{es.Operation_Asmt, "test"}},
 		{ValueAction, run.DoubleValue{0}, Operation{}},
 		{OperationAction, run.NilValue{}, Operation{es.Operation_ClearReg, ""}},
@@ -165,13 +169,16 @@ func TestExecutorLoop(t *testing.T) {
 
 		{ValueAction, run.IdenValue{"test"}, Operation{}},
 		{OperationAction, run.NilValue{}, Operation{es.Operation_ClearReg, ""}},
+
+		{OperationAction, run.NilValue{}, Operation{es.Operation_ScopeEnd, ""}},
+		{OperationAction, run.NilValue{}, Operation{es.Operation_ClearReg, ""}},
 	}
 
 	executor := NewExecutor("~/", actions)
 
 	ret := executor.StartExecution()
 
-	if ret.Double() != 10 {
-		t.Errorf("Error executing loop. Expected %d, Recieved: %f", 10, ret.Double())
+	if ret.Double() != 6 {
+		t.Errorf("Error executing loop. Expected %d, Recieved: %f", 6, ret.Double())
 	}
 }

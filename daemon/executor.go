@@ -15,13 +15,19 @@ type Operation struct {
 	Val string
 }
 
+// TODO: I would lke to formulate this better
+type block struct {
+	start int
+	loop  bool
+}
+
 // handles right to left execution for a task
 type Executor struct {
 	// cwd string
 	stack      run.StackMap[func(...run.Value) run.Value]
 	opQueue    run.Queue[Operation]
 	valQueue   run.Queue[run.Value]
-	blockStack run.Stack[int]
+	blockStack run.Stack[block]
 	skipExec   bool
 	loopExec   bool
 	script     []Action
@@ -33,7 +39,7 @@ func NewExecutor(cwd string, cmd_ops []Action) Executor {
 		stack:      run.NewStackMap[func(...run.Value) run.Value](),
 		opQueue:    run.NewQueue[Operation](),
 		valQueue:   run.NewQueue[run.Value](),
-		blockStack: run.NewStack[int](),
+		blockStack: run.NewStack[block](),
 		skipExec:   false,
 		loopExec:   false,
 		script:     cmd_ops,
@@ -288,10 +294,10 @@ func (e *Executor) StartExecution() run.Value {
 						gc.LogInfo("SPECIAL ScopeEnd")
 
 						_ = e.stack.PopLayer()
-						e.blockStack.Pop()
+						prev_block := e.blockStack.Pop()
 
-						if e.loopExec {
-							e.scriptPos = e.blockStack.Pop() - 1
+						if prev_block.loop {
+							e.scriptPos = prev_block.start - 1
 
 							gc.LogInfo("SPECIAL Looped to", e.scriptPos+1)
 						}
@@ -301,7 +307,7 @@ func (e *Executor) StartExecution() run.Value {
 						gc.LogInfo("SPECIAL ScopeStart")
 
 						e.stack.NewLayer()
-						e.blockStack.Push(e.scriptPos)
+						e.blockStack.Push(block{e.scriptPos, false})
 
 					}
 					// fallthrough
@@ -421,6 +427,19 @@ func (e *Executor) execOp() run.Value {
 
 				loop_index := e.recallIfPossible(run.IdenValue{op_asmt.Val})
 
+				if !e.loopExec {
+					// Initialize to range start on the first iteration
+
+					loop_index = run.DoubleValue{float64(for_range.Range()[0])}
+					gc.LogInfo("Loop Op Init", op_asmt.Val, loop_index)
+
+					e.stack.Set(op_asmt.Val, valueWrap(loop_index))
+
+				} else {
+					loop_index = run.DoubleValue{loop_index.Double() + 1}
+					e.stack.Set(op_asmt.Val, valueWrap(loop_index))
+				}
+
 				gc.LogInfo("Loop Op", op.Val, loop_index, for_range)
 
 				if int32(loop_index.Double()) > for_range.Range()[1] {
@@ -428,9 +447,6 @@ func (e *Executor) execOp() run.Value {
 					e.loopExec = false
 
 				} else {
-					new_loop_index := loop_index.Double() + 1
-					e.stack.Set(op_asmt.Val, valueWrap(run.DoubleValue{new_loop_index}))
-
 					e.loopExec = true
 					e.skipExec = false
 
@@ -438,7 +454,9 @@ func (e *Executor) execOp() run.Value {
 					for i := e.scriptPos; i >= 0; i-- {
 						if e.script[i].GetType() == OperationAction {
 							if e.script[i].GetOperation().Op == es.Operation_Loop {
-								e.blockStack.Push(i)
+
+								e.blockStack.Push(block{i, true})
+
 								break
 							}
 						}
