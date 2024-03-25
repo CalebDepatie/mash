@@ -17,7 +17,8 @@ echo "*** Debugging $1 ***"
 echo ""
 
 test_actual=$($interp "$dir/$1$extension")
-echo $test_actual
+echo -n $test_actual
+echo ""
 
 # shut down the daemon
 sudo killall -SIGINT $daemon_prog

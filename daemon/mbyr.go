@@ -63,6 +63,12 @@ func ConvertCodes(codes *es.ExecStream) []Action {
 				actions = append(actions, new_action)
 			}
 
+		case es.Operation_Recall:
+			{
+				new_action := Action{ValueAction, run.IdenValue{code.GetStringValue()}, Operation{}}
+				actions = append(actions, new_action)
+			}
+
 		default:
 			{
 				contentStr := code.GetStringValue()

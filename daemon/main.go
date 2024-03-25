@@ -114,6 +114,9 @@ func handleConnection(conn net.Conn) {
 	}
 
 	mbyr_codes := ConvertCodes(program)
+
+	gc.LogInfo("MBYR Codes:", mbyr_codes)
+
 	executor := NewExecutor(program.CurrentWorkingDir, mbyr_codes)
 	ret := executor.StartExecution()
 

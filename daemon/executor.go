@@ -213,9 +213,19 @@ func executeCond(op string, left, right run.Value) run.Value {
 }
 
 func (e *Executor) recallIfPossible(val run.Value) run.Value {
+	if val == nil {
+		gc.LogError("Recalling nil interface value!!")
+
+		return run.NilValue{}
+	}
+
 	if val.Type() != run.Iden {
+		gc.LogInfo("Recalling Value:", val.String())
+
 		return val
 	}
+
+	gc.LogInfo("Recalling Iden:", val.String())
 
 	key := val.String()
 	determinedValue, err := e.stack.Get(key)
@@ -267,14 +277,16 @@ func (e *Executor) StartExecution() run.Value {
 					{
 						line_ret := e.execOp()
 
+						gc.LogInfo("SPECIAL ClearReg", line_ret.String())
+
 						if line_ret.Type() != run.Nil {
 							ret = line_ret
 						}
-
-						gc.LogInfo("SPECIAL ClearReg", line_ret.String())
 					}
 				case es.Operation_ScopeEnd:
 					{
+						gc.LogInfo("SPECIAL ScopeEnd")
+
 						_ = e.stack.PopLayer()
 						e.blockStack.Pop()
 
@@ -283,15 +295,14 @@ func (e *Executor) StartExecution() run.Value {
 
 							gc.LogInfo("SPECIAL Looped to", e.scriptPos+1)
 						}
-
-						gc.LogInfo("SPECIAL ScopeEnd")
 					}
 				case es.Operation_ScopeStart:
 					{
+						gc.LogInfo("SPECIAL ScopeStart")
+
 						e.stack.NewLayer()
 						e.blockStack.Push(e.scriptPos)
 
-						gc.LogInfo("SPECIAL ScopeStart")
 					}
 					// fallthrough
 				default:
@@ -345,6 +356,8 @@ func (e *Executor) execOp() run.Value {
 
 		case es.Operation_Asmt:
 			{
+				gc.LogInfo("Asmt Op", op.Val, ret)
+
 				// this is called BEFORE execution that would set to ret
 				if ret.Type() == run.Nil {
 					ret = e.execOp() // parse the next op
@@ -354,8 +367,6 @@ func (e *Executor) execOp() run.Value {
 				}
 
 				e.stack.Set(op.Val, valueWrap(ret))
-
-				gc.LogInfo("Asmt Op", op.Val, ret)
 			}
 
 		case es.Operation_If:
@@ -410,6 +421,8 @@ func (e *Executor) execOp() run.Value {
 
 				loop_index := e.recallIfPossible(run.IdenValue{op_asmt.Val})
 
+				gc.LogInfo("Loop Op", op.Val, loop_index, for_range)
+
 				if int32(loop_index.Double()) > for_range.Range()[1] {
 					e.skipExec = true
 					e.loopExec = false
@@ -432,12 +445,12 @@ func (e *Executor) execOp() run.Value {
 					}
 				}
 
-				gc.LogInfo("Loop Op", op.Val, loop_index, for_range)
 			}
 
 		case es.Operation_FnCall:
 			{
 				// NOTE: currently assuming args will be values
+				gc.LogInfo("FnCall Op", op.Val, ret)
 				args := []run.Value{}
 
 				for !e.valQueue.IsEmpty() {
@@ -449,7 +462,6 @@ func (e *Executor) execOp() run.Value {
 
 				ret = fn(args...)
 
-				gc.LogInfo("FnCall Op", op.Val, ret)
 			}
 
 		default:
